@@ -296,6 +296,27 @@ body.drawing #drawbar{transform:translate(-50%,0)}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 .burst{position:absolute;pointer-events:none;z-index:15}
 
+/* ---------- v3: wait control ---------- */
+.scene-meter{position:absolute;left:14px;bottom:12px;width:120px;height:14px;z-index:3}
+.skip{position:absolute;right:12px;bottom:12px;z-index:6;display:flex;align-items:center;gap:6px;border:0;border-radius:999px;background:#3B2A28;color:#FFF4EA;
+  font:800 16px var(--body);padding:8px 14px 8px 16px;cursor:pointer;box-shadow:0 6px 14px rgba(59,42,40,.3);scale:0;transition:scale .25s cubic-bezier(.2,.9,.3,1.6)}
+.skip.show{scale:1}
+.skip:hover{background:#5a4542}
+.skip:focus-visible{outline:3px solid var(--lemon);outline-offset:2px}
+.skip svg{width:16px;height:16px}
+.skip .left{font-variant-numeric:tabular-nums;opacity:.75;font-weight:700;font-size:14px}
+.overlay.wait{pointer-events:auto;cursor:pointer}
+.overlay .skip{position:absolute;right:auto;left:50%;bottom:150px;translate:-50% 0;scale:1}
+.lab.auto-on .scene{box-shadow:inset 0 0 0 3px #CFC3F7}
+.auto-tag{position:absolute;left:12px;top:12px;z-index:5;font:800 13px var(--body);letter-spacing:.06em;color:#fff;background:var(--noun);border-radius:999px;padding:3px 10px;display:none}
+.lab.auto-on .auto-tag{display:block;animation:pulseA 1.4s ease-in-out infinite}
+@keyframes pulseA{50%{opacity:.55}}
+.flip .auto-tag{left:auto;right:12px}
+/* video: embedded player */
+.video-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.video-box .vclose{position:absolute;right:10px;top:10px;z-index:3;border:0;border-radius:999px;background:rgba(255,255,255,.9);color:#3B2A28;font:800 14px var(--body);padding:6px 12px;cursor:pointer}
+.yt-note{margin-top:8px;font:700 14px var(--body);color:#D9BBA8;max-width:520px;margin-inline:auto}
+
 /* ---------- v2 additions ---------- */
 /* title plan stickers */
 .plan{position:absolute;left:400px;right:60px;top:606px;display:flex;align-items:center;justify-content:center;gap:18px}
@@ -499,7 +520,7 @@ body.drawing #drawbar{transform:translate(-50%,0)}
       <li data-in="right" style="--d:1150"><b>Finally,</b> check the steps, pictures and ingredients.</li>
     </ol>
     <div class="tray" id="tray"></div>
-    <div class="ws-controls"><span class="clock3 timer" id="clock3">3:00</span><button class="btn go" data-act="timer">Start · 3 min</button><button class="btn go" data-act="check">Check</button><button class="btn" data-act="reset">Start over</button></div>
+    <div class="ws-controls"><span class="clock3 timer" id="clock3">3:00</span><button class="btn go" data-act="timer">Start · 3 min</button><button class="btn" data-act="skip3" hidden>Skip</button><button class="btn go" data-act="check">Check</button><button class="btn" data-act="reset">Start over</button></div>
     <div class="score" id="matchScore"></div>
   </div>
   <aside class="notes" data-lead="Teacher">
@@ -525,14 +546,15 @@ body.drawing #drawbar{transform:translate(-50%,0)}
         <div class="play pulse"><svg width="50" height="50" viewBox="0 0 50 50"><path d="M16 10L40 25L16 40Z" fill="#FCE7D6"/></svg></div>
         <div style="font-size:28px">How to make vanilla cupcakes</div>
         <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-          <a class="btn go" href="https://www.youtube.com/watch?v=dGgE68DBvkw" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+          <button class="btn go" type="button" data-act="embed">Play here</button>
+          <a class="btn" href="https://www.youtube.com/watch?v=dGgE68DBvkw" target="_blank" rel="noopener noreferrer">Open on YouTube</a>
           <label class="btn" for="vidFile">Play a video file</label><input id="vidFile" type="file" accept="video/*" hidden>
         </div>
         <div class="yt-url">https://www.youtube.com/watch?v=dGgE68DBvkw</div>
       </div>
     </div>
   </div>
-  <div class="vid-speed" data-in="up" style="--d:300">Speed <span class="speed" role="group" aria-label="Video speed"><button data-r="1">1×</button><button data-r="1.5">1.5×</button><button data-r="2" aria-pressed="true">2×</button></span><span class="hint">On YouTube: Settings → Playback speed → 2</span></div>
+  <div class="vid-speed" data-in="up" style="--d:300">Speed <span class="speed" role="group" aria-label="Video speed"><button data-r="1">1×</button><button data-r="1.5">1.5×</button><button data-r="2" aria-pressed="true">2×</button></span><span class="hint">If “Play here” stays black, use “Open on YouTube”.</span></div>
   <ol class="watch">
     <li data-in="right" style="--d:250"><button><span class="qn">1</span>Please watch carefully.</button></li>
     <li data-in="right" style="--d:350"><button><span class="qn">2</span>Pay attention to the steps.</button></li>
@@ -549,7 +571,7 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     <p><b>Great job!</b></p>
     <p>Now, let's watch a short video. Please watch carefully. Pay attention to the steps.</p>
     <p>Check your recipe. If the order is not correct, change it. Make your recipe correct.</p>
-    <p>Ready? Let's watch! <span class="cue">(Play at 2× speed. On YouTube: Settings → Playback speed → 2.)</span></p>
+    <p>Ready? Let's watch! <span class="cue">(Click “Play here”; speed is set to 2×. If it stays black, click “Open on YouTube” and set Settings → Playback speed → 2.)</span></p>
     <p>You can discuss with your group members.</p>
     <p>Is your recipe correct now?</p>
     <p class="cue">Video: https://www.youtube.com/watch?v=dGgE68DBvkw</p>
@@ -642,8 +664,8 @@ body.drawing #drawbar{transform:translate(-50%,0)}
   <div class="step-lab">
     <span class="tag lab-tag" data-in="drop">Sieve</span>
     <div class="lab card" data-in="left" style="--d:150">
-      <div class="lab-bar"><span class="meter" style="max-width:150px"><i class="sieve-meter"></i></span><button class="btn small" data-act="reset">Start over</button></div>
-      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><span class="meter scene-meter"><i class="sieve-meter"></i></span><svg viewBox="0 0 540 380" class="sv"></svg></div>
       <div class="controls">
         <button class="btn" data-a="flour">Cake flour · 190 g</button><button class="btn" data-a="bp">Baking powder · 1½ tsp</button><button class="btn" data-a="salt">Salt · ¼ tsp</button>
         <button class="btn go" data-a="sieve">Shake the sieve</button>
@@ -747,8 +769,8 @@ body.drawing #drawbar{transform:translate(-50%,0)}
   <div class="step-lab">
     <span class="tag lab-tag" data-in="drop">Add flavor</span>
     <div class="lab card" data-in="right" style="--d:150">
-      <div class="lab-bar"><span class="meter" style="max-width:160px"><i class="mix-meter"></i></span><button class="btn small" data-act="reset">Start over</button></div>
-      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><span class="meter scene-meter"><i class="mix-meter"></i></span><svg viewBox="0 0 540 380" class="sv"></svg></div>
       <div class="controls">
         <button class="btn" data-a="vanilla">Add vanilla · 1 tsp</button><button class="btn" data-a="milk">Add honey milk</button>
       </div>
@@ -780,8 +802,8 @@ body.drawing #drawbar{transform:translate(-50%,0)}
   <div class="step-lab">
     <span class="tag lab-tag" data-in="drop">Mix</span>
     <div class="lab card" data-in="left" style="--d:150">
-      <div class="lab-bar"><span class="meter" style="max-width:160px"><i class="mix-meter"></i></span><button class="btn small" data-act="reset">Start over</button></div>
-      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><span class="meter scene-meter"><i class="mix-meter"></i></span><svg viewBox="0 0 540 380" class="sv"></svg></div>
       <div class="controls"><button class="btn go" data-a="add">Add flour (1 of 4)</button></div>
     </div>
     <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:150px;transform:rotate(-5deg);--d:500" data-zoom="ph_mix.webp" data-in><img data-img="ph_mix.webp" alt="Folding flour into batter"><span>mix gently</span></div>
@@ -953,16 +975,20 @@ function bigCount(sec, done) {
   const C = 2 * Math.PI * 110;
   const o = overlay(`<div class="ring"><svg viewBox="0 0 260 260"><circle cx="130" cy="130" r="110" fill="#fff" stroke="#F6E2D2" stroke-width="18"/><circle class="arc" cx="130" cy="130" r="110" fill="none" stroke="#E0473F" stroke-width="18" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg><b>${sec}</b></div>`);
   const arc = $('.arc', o.el), num = $('b', o.el), t0 = performance.now();
-  let shown = sec, raf;
+  let shown = sec, raf, over = false;
+  const finish = () => { if (over) return; over = true; cancelAnimationFrame(raf); o.close(); done && done(); };
+  o.el.classList.add('wait');
+  o.el.insertAdjacentHTML('beforeend', `<button class="skip" type="button">${SKIP_ICON}<span>Skip</span></button>`);
+  o.el.addEventListener('click', finish);
   const loop = now => {
     const el = (now - t0) / 1000, left = Math.max(0, sec - el);
     arc.setAttribute('stroke-dashoffset', C * (1 - left / sec));
     const n = Math.ceil(left);
     if (n !== shown && n > 0) { shown = n; num.textContent = n; num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick'); }
-    if (left > 0) raf = requestAnimationFrame(loop); else { o.close(); done && done(); }
+    if (left > 0) raf = requestAnimationFrame(loop); else finish();
   };
   raf = requestAnimationFrame(loop);
-  return { cancel() { cancelAnimationFrame(raf); o.close(); } };
+  return { cancel() { over = true; cancelAnimationFrame(raf); o.close(); } };
 }
 /* confetti rain across the whole slide */
 function celebrate(n = 70) {
@@ -1009,31 +1035,112 @@ const Reader = {
   }
 };
 
-/* ---------- timer speed (shared) ---------- */
+/* ---------- lab mode (shared by all labs) ----------
+   fast: every wait, however long, plays in 5 real seconds
+   real: real cooking time
+   auto: fast + the lab presses its own buttons, step by step */
+const FAST_SECONDS = 5;
 const Speed = {
-  fast: true,
-  get factor() { return this.fast ? 10 : 1; },
+  mode: 'fast',
+  get real() { return this.mode === 'real'; },
   mount() {
+    safe(() => { const m = localStorage.getItem('cupcake-lab-mode'); if (['fast', 'real', 'auto'].includes(m)) this.mode = m; });
     $$('.speed-slot').forEach(slot => {
-      slot.innerHTML = '<span class="speed" role="group" aria-label="Timer speed"><button data-s="fast">Fast</button><button data-s="real">Real time</button></span>';
-      slot.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; this.fast = b.dataset.s === 'fast'; this.sync(); });
+      slot.innerHTML = '<span class="speed" role="group" aria-label="Lab mode">' +
+        '<button data-s="fast" title="Every wait plays in 5 seconds">Fast</button>' +
+        '<button data-s="real" title="Real cooking time">Real</button>' +
+        '<button data-s="auto" title="The lab does each step by itself">Auto</button></span>';
+      slot.addEventListener('click', e => { const b = e.target.closest('button'); if (b) this.set(b.dataset.s); });
     });
+    $$('.lab').forEach(lab => { const t = document.createElement('span'); t.className = 'auto-tag'; t.textContent = 'AUTO'; $('.scene', lab).appendChild(t); });
     this.sync();
   },
-  sync() { $$('.speed button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.s === 'fast') === this.fast))); }
+  set(m) {
+    this.mode = m; safe(() => localStorage.setItem('cupcake-lab-mode', m)); this.sync();
+    toast({ fast: 'Fast: every wait takes 5 seconds', real: 'Real: real cooking time', auto: 'Auto: the lab plays each step by itself' }[m]);
+  },
+  sync() {
+    $$('.speed-slot .speed button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === this.mode)));
+    $$('.lab').forEach(l => l.classList.toggle('auto-on', this.mode === 'auto'));
+    Auto.sync();
+  }
 };
-/* countdown that honours Speed and can be cancelled */
-function countdown(seconds, onTick, onDone) {
+
+/* Skip button inside a lab scene, shown only while something is waiting */
+const SKIP_ICON = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 3l6 5-6 5zM8 3l6 5-6 5z"/></svg>';
+function skipButton(root, onSkip) {
+  const scene = root && $('.scene', root); if (!scene) return null;
+  let b = $('.skip', scene);
+  if (!b) { b = document.createElement('button'); b.className = 'skip'; b.type = 'button'; scene.appendChild(b); }
+  b.innerHTML = `${SKIP_ICON}<span>Skip</span><span class="left"></span>`;
+  b.onclick = e => { e.stopPropagation(); onSkip(); };
+  requestAnimationFrame(() => b.classList.add('show'));
+  return { left(t) { $('.left', b).textContent = t; }, hide() { b.classList.remove('show'); b.onclick = null; } };
+}
+
+/* Countdown: honours the lab mode, can be skipped or cancelled.
+   Registered timers let Auto know a lab is still busy. */
+const Timers = {
+  set: new Set(),
+  busy(root) { for (const t of this.set) if (t.root === root) return true; return false; }
+};
+function countdown(seconds, onTick, onDone, root) {
   let left = seconds, last = performance.now(), raf = 0, dead = false;
+  const skip = root ? skipButton(root, () => t.skip()) : null;
+  const t = {
+    root,
+    skip() { left = 0; },
+    cancel() { finish(false); }
+  };
+  function finish(fire) {
+    if (dead) return; dead = true; cancelAnimationFrame(raf); Timers.set.delete(t); skip && skip.hide();
+    if (fire) { safe(() => onTick(0, 1)); onDone && safe(onDone); }
+  }
   const loop = now => {
     if (dead) return;
-    left -= (now - last) / 1000 * Speed.factor; last = now;
-    if (left <= 0) { onTick(0, 1); dead = true; onDone && onDone(); return; }
+    const rate = Speed.real ? 1 : Math.max(1, seconds / FAST_SECONDS);
+    left -= (now - last) / 1000 * rate; last = now;
+    if (left <= 0) return finish(true);
+    skip && skip.left(Math.ceil(left / rate) + ' s');
     onTick(left, 1 - left / seconds); raf = requestAnimationFrame(loop);
   };
-  raf = requestAnimationFrame(loop);
-  return { cancel() { dead = true; cancelAnimationFrame(raf); } };
+  Timers.set.add(t); raf = requestAnimationFrame(loop);
+  return t;
 }
+
+/* Programmatic stirring for Auto mode: spatula circles the bowl while progress rises */
+function autoStir({ spoon, cx, cy, rx, ry, from = 0, ms = 2600, onProgress, alive }) {
+  return new Promise(resolve => {
+    const t0 = performance.now();
+    const loop = now => {
+      if (alive && !alive()) return resolve(false);
+      const k = clamp((now - t0) / ms, 0, 1), a = k * Math.PI * 6;
+      spoon.style.opacity = 1;
+      spoon.setAttribute('transform', `translate(${cx + Math.cos(a) * rx * .55} ${cy + Math.sin(a) * ry * .45}) rotate(${-25 + Math.sin(a) * 12})`);
+      onProgress(lerp(from, 1, k));
+      if (k < 1) requestAnimationFrame(loop); else { spoon.style.opacity = .35; resolve(true); }
+    };
+    requestAnimationFrame(loop);
+  });
+}
+/* click the next enabled lab button (Auto mode helper) */
+function autoClick(root, skip = []) {
+  const b = $$('.controls [data-a]', root).find(x => !x.disabled && !skip.includes(x.dataset.a));
+  if (!b) return false; b.click(); return true;
+}
+
+/* Auto runner: on the current slide, asks the lab for its next step when it is idle */
+const Auto = {
+  iv: null, enteredAt: 0,
+  sync() { if (Speed.mode === 'auto') { if (!this.iv) this.iv = setInterval(() => this.tick(), 1100); } else { clearInterval(this.iv); this.iv = null; } },
+  tick() {
+    const sl = Deck.slides[Deck.idx], m = sl && Modules[sl.dataset.mod];
+    if (!m || !m.autoStep || Draw.on) return;
+    const now = performance.now();
+    if (now < this.enteredAt + 1500 || now < (m.autoUntil || 0) || m.autoBusy || Timers.busy(sl)) return;
+    safe(() => m.autoStep());
+  }
+};
 const mmss = s => { s = Math.ceil(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 
 /* ---------- shared SVG parts ---------- */
@@ -1163,9 +1270,10 @@ Modules.video = {
     });
     vid.addEventListener('loadedmetadata', () => { vid.playbackRate = this.rate; });
     vid.addEventListener('error', () => { toast('This video cannot play here. Try an MP4 file.'); vid.hidden = true; empty.hidden = false; });
+    $('[data-act="embed"]', root).addEventListener('click', () => this.embed());
     $('.vid-speed .speed', root).addEventListener('click', e => {
       const b = e.target.closest('button'); if (!b) return;
-      this.rate = Number(b.dataset.r); safe(() => { vid.playbackRate = this.rate; });
+      this.rate = Number(b.dataset.r); safe(() => { vid.playbackRate = this.rate; }); this.ytRate();
       $$('.vid-speed .speed button', root).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     });
     $$('.watch li', root).forEach(li => $('button', li).addEventListener('click', () => li.classList.toggle('done')));
@@ -1175,8 +1283,30 @@ Modules.video = {
       toast('Change the order and check again.');
     });
   },
+  /* YouTube player inside the slide (needs the deck to be opened from a website; the claude.ai preview blocks it) */
+  embed() {
+    const box = $('.video-box', this.root);
+    if ($('iframe', box)) return;
+    const f = document.createElement('iframe');
+    const origin = /^https?:/.test(location.protocol) ? '&origin=' + encodeURIComponent(location.origin) : '';
+    f.src = 'https://www.youtube.com/embed/dGgE68DBvkw?autoplay=1&rel=0&playsinline=1&enablejsapi=1' + origin;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true; f.title = 'Vanilla cupcake video';
+    f.referrerPolicy = 'strict-origin-when-cross-origin';
+    f.addEventListener('load', () => { [400, 1200, 2500, 4000].forEach(ms => setTimeout(() => this.ytRate(), ms)); });
+    const close = document.createElement('button'); close.className = 'vclose'; close.type = 'button'; close.textContent = 'Close video';
+    close.addEventListener('click', () => { f.remove(); close.remove(); $('#vidEmpty').hidden = false; });
+    $('#vidEmpty').hidden = true; this.vid.hidden = true; box.append(f, close); this.frame = f;
+  },
+  /* set YouTube playback speed through the player's postMessage API */
+  ytRate() {
+    const f = this.frame; if (!f || !f.isConnected || !f.contentWindow) return;
+    safe(() => f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [this.rate] }), '*'));
+  },
   reset() { $$('.watch li', this.root).forEach(li => li.classList.remove('done')); },
-  leave() { safe(() => this.vid.pause()); }
+  leave() {
+    safe(() => this.vid.pause());
+    if (this.frame && this.frame.isConnected) safe(() => this.frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'));
+  }
 };
 
 /* ---- Ingredients ---- */
@@ -1315,22 +1445,22 @@ Modules.step1 = {
         $('.glow', s).setAttribute('opacity', 0); $('.turn', s).getAnimations().forEach(x => x.cancel());
         $('.steam', s).style.display = ''; $('.disp', s).textContent = 'END';
         say(this.root, 'Ding! Hot milk and honey.', 'good'); this.state.heated = true; this.tasks.done('heat'); enable(this.root, ['stir']);
-      });
+      }, this.root);
     }
     if (a === 'stir') {
       this.swirl.setAttribute('opacity', 1);
       this.swirl.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 900, iterations: 2 });
       this.swirl.style.transformBox = 'fill-box'; this.swirl.style.transformOrigin = 'center';
       setTimeout(() => { this.liq.setAttribute('fill', '#F7DE9A'); this.hon.setAttribute('rx', 0); this.swirl.setAttribute('opacity', 0); }, 1200);
-      say(this.root, 'Stir, stir, stir!'); this.tasks.done('stir'); enable(this.root, ['cool']);
+      say(this.root, 'Stir, stir, stir!'); this.tasks.done('stir'); enable(this.root, ['cool']); this.autoUntil = performance.now() + 1600;
     }
     if (a === 'cool') {
       enable(this.root, []);
-      const start = performance.now();
-      const step = now => { const p = clamp((now - start) / 2500, 0, 1); this.setTemp(lerp(70, 32, p)); $('.steam', s).style.opacity = 1 - p; if (p < 1) this.raf = requestAnimationFrame(step); else { $('.steam', s).style.display = 'none'; say(this.root, 'Ready! Warm, not hot.', 'good', 0); this.tasks.done('cool'); const [x, y] = stagePoint(s); burst(x, y, 24); } };
-      this.raf = requestAnimationFrame(step);
+      this.timer = countdown(4, (left, p) => { this.setTemp(lerp(70, 32, p)); $('.steam', s).style.opacity = 1 - p; },
+        () => { $('.steam', s).style.display = 'none'; say(this.root, 'Ready! Warm, not hot.', 'good', 0); this.tasks.done('cool'); const [x, y] = stagePoint(s); burst(x, y, 24); }, this.root);
     }
   },
+  autoStep() { autoClick(this.root); },
   reset() {
     this.timer && this.timer.cancel(); cancelAnimationFrame(this.raf);
     this.state = {}; const s = this.svg;
@@ -1405,6 +1535,7 @@ Modules.step2 = {
     if (this.n < 6) say(this.root, ['Shake!', 'Shake, shake!', 'Keep going!', 'Almost!', 'One more!'][this.n - 1] || 'Shake!', '', 900);
     else { enable(this.root, []); this.tasks.done('sieve'); say(this.root, 'Light and fluffy, no lumps!', 'good', 0); const [x, y] = stagePoint(this.svg); burst(x, y, 24); }
   },
+  autoStep() { if (!this.shaking) autoClick(this.root); },
   reset() {
     this.state = {}; this.n = 0; this.shaking = false;
     ['.sf', '.sb', '.pile'].forEach(s => { $(s, this.svg).setAttribute('rx', 0); $(s, this.svg).setAttribute('ry', 0); });
@@ -1450,7 +1581,7 @@ Modules.step3 = {
         $('.clock', s).textContent = mmss(left);
         $('.yolks', s).setAttribute('opacity', 1 - Math.min(1, p * 2));
         this.bat.setAttribute('fill', mix(this.EGG, this.PALE, p));
-      }, () => { this.whisk(false); this.tasks.done('whisk1'); say(this.root, 'Foamy eggs! Now add sugar.', 'good'); enable(this.root, ['sugar']); });
+      }, () => { this.whisk(false); this.tasks.done('whisk1'); say(this.root, 'Foamy eggs! Now add sugar.', 'good'); enable(this.root, ['sugar']); }, this.root);
     }
     if (a === 'sugar') {
       $('.sugar', s).setAttribute('opacity', 1);
@@ -1465,9 +1596,10 @@ Modules.step3 = {
         $('.sugar', s).setAttribute('opacity', 1 - Math.min(1, p * 2));
         this.bat.setAttribute('fill', mix(this.PALE, this.CREAM, p));
         this.bat.setAttribute('cy', 244 - p * 14); this.bat.setAttribute('rx', 130 + p * 10);
-      }, () => { this.whisk(false); this.tasks.done('whisk2'); say(this.root, 'Pale and creamy!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24); });
+      }, () => { this.whisk(false); this.tasks.done('whisk2'); say(this.root, 'Pale and creamy!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24); }, this.root);
     }
   },
+  autoStep() { if (autoClick(this.root)) this.autoUntil = performance.now() + 900; },
   reset() {
     this.timer && this.timer.cancel(); this.whisk(false);
     const s = this.svg; this.bat.setAttribute('rx', 0); this.bat.setAttribute('ry', 0); this.bat.setAttribute('cy', 244); this.bat.setAttribute('fill', this.EGG);
@@ -1545,7 +1677,12 @@ Modules.step41 = {
     }, () => {
       this.mixer.classList.remove('on'); this.mixer.style.transform = 'none'; $('.bat', s).classList.remove('wob');
       this.tasks.done('whisk'); say(this.root, 'Smooth and shiny!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24);
-    });
+    }, this.root);
+  },
+  autoStep() {
+    if (this.pouring) return;
+    if (this.amount < this.NEED) { this.range.value = 3; this.pouring = true; this.loop(); say(this.root, 'Slowly, from the side…', '', 1500); return; }
+    autoClick(this.root, ['pour']);
   },
   reset() {
     this.timer && this.timer.cancel(); cancelAnimationFrame(this.raf); this.pouring = false; this.amount = 0;
@@ -1597,14 +1734,22 @@ Modules.step42 = {
     if (!left.length) setTimeout(() => { $('.hint', s).setAttribute('opacity', 1); say(this.root, 'Mix with the spatula!', '', 2400); }, 1500);
   },
   mixP(p) {
-    const s = this.svg;
+    const s = this.svg; this.p = p;
     $('.mix-meter', this.root).style.width = p * 100 + '%';
     $('.van', s).setAttribute('opacity', 1 - p); $('.hm', s).setAttribute('opacity', .85 * (1 - p));
     $('.bat', s).setAttribute('fill', mix('#FBE7A6', '#F3D58C', p));
     if (p >= 1 && !this.state.mixed) { this.state.mixed = true; this.tasks.done('mix'); $('.hint', s).setAttribute('opacity', 0); say(this.root, 'All the same color. Great mixing!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24); }
   },
+  async autoStep() {
+    if (!this.state.vanilla) { autoClick(this.root); this.autoUntil = performance.now() + 1800; return; }
+    if (!this.state.milk) { autoClick(this.root); this.autoUntil = performance.now() + 2000; return; }
+    if (this.state.mixed) return;
+    const tok = this.tok; this.autoBusy = true;
+    await autoStir({ spoon: $('.spoon', this.svg), cx: 270, cy: 215, rx: 165, ry: 70, from: this.p || 0, onProgress: p => this.mixP(p), alive: () => tok === this.tok && Speed.mode === 'auto' });
+    this.autoBusy = false;
+  },
   reset() {
-    this.state = {}; this.stir.reset(); const s = this.svg;
+    this.state = {}; this.stir.reset(); const s = this.svg; this.p = 0; this.tok = (this.tok || 0) + 1; this.autoBusy = false;
     $('.van', s).setAttribute('stroke-width', 0); $('.van', s).setAttribute('opacity', 1);
     $('.hm', s).setAttribute('stroke-width', 0); $('.hm', s).setAttribute('opacity', .85);
     $('.bat', s).setAttribute('fill', '#FBE7A6'); $('.hint', s).setAttribute('opacity', 0);
@@ -1634,7 +1779,7 @@ Modules.step5 = {
   add() {
     if (this.hasMound) { say(this.root, 'Mix first, then add more.', 'warn'); return; }
     if (this.added >= this.PARTS) return;
-    this.added++; this.hasMound = true; this.stir.reset();
+    this.added++; this.hasMound = true; this.stir.reset(); this.p = 0;
     const g = $('.mound', this.svg);
     g.innerHTML = `<path d="M200 214 Q270 150 340 214 Z" fill="#FFFDF8" stroke="#E2D8CA" stroke-width="2"/>` +
       Array.from({ length: 10 }, (_, i) => `<circle cx="${215 + i * 12}" cy="${206 - (i % 3) * 8}" r="${3 + (i % 2) * 2}" fill="#fff" stroke="#E2D8CA"/>`).join('');
@@ -1647,6 +1792,7 @@ Modules.step5 = {
     const b = $('[data-a="add"]', this.root); b.disabled = true; b.classList.remove('next-hint');
   },
   fold(p) {
+    this.p = p >= 1 ? 0 : p;
     const g = $('.mound', this.svg); g.style.opacity = 1 - p;
     $('.mix-meter', this.root).style.width = p * 100 + '%';
     $('.bat', this.svg).setAttribute('fill', mix('#F3D58C', '#F6E4B0', (this.added - 1 + p) / this.PARTS));
@@ -1658,8 +1804,14 @@ Modules.step5 = {
       else { b.textContent = 'All flour added'; say(this.root, 'Smooth batter, no lumps!', 'good', 0); const [x, y] = stagePoint(this.svg); burst(x, y, 24); }
     }
   },
+  async autoStep() {
+    if (!this.hasMound) { if (this.added < this.PARTS) { this.add(); this.autoUntil = performance.now() + 900; } return; }
+    const tok = this.tok; this.autoBusy = true;
+    await autoStir({ spoon: $('.spoon', this.svg), cx: 270, cy: 215, rx: 165, ry: 70, from: this.p || 0, ms: 1800, onProgress: p => this.fold(p), alive: () => tok === this.tok && Speed.mode === 'auto' });
+    this.autoBusy = false;
+  },
   reset() {
-    this.added = 0; this.hasMound = false; this.stir.reset();
+    this.added = 0; this.hasMound = false; this.stir.reset(); this.p = 0; this.tok = (this.tok || 0) + 1; this.autoBusy = false;
     $('.mound', this.svg).innerHTML = ''; $$('.dots circle', this.svg).forEach(c => c.setAttribute('fill', '#fff'));
     $('.bat', this.svg).setAttribute('fill', '#F3D58C'); $('.hint', this.svg).setAttribute('opacity', 0);
     const b = $('[data-a="add"]', this.root); b.disabled = false; b.classList.add('next-hint'); b.textContent = `Add flour (1 of ${this.PARTS})`;
@@ -1708,7 +1860,7 @@ Modules.step6 = {
     this.n++; $('.cnt', this.svg).textContent = `Filled ${this.n} / 12`;
     if (this.n === 12) { this.tasks.done('fill'); enable(this.root, ['bake']); say(this.root, 'All 12 cases are full!', 'good'); }
   },
-  async fillAll() { const cs = $$('.cup', this.svg).filter(c => !c.dataset.full); for (const c of cs) { this.fill(c, true); await sleep(90); } },
+  async fillAll() { if (this.baking) return; const cs = $$('.cup', this.svg).filter(c => !c.dataset.full); for (const c of cs) { this.fill(c, true); await sleep(90); } },
   bake() {
     enable(this.root, []); this.baking = true; const s = this.svg;
     $('.oven', s).style.transition = 'opacity .6s'; $('.oven', s).setAttribute('opacity', 1); $('.cnt', s).setAttribute('opacity', 0);
@@ -1723,7 +1875,11 @@ Modules.step6 = {
       $('.oven', s).setAttribute('opacity', 0); $('.ovtime', s).textContent = '0:00';
       this.tasks.done('bake'); say(this.root, 'Ding! The cupcakes are ready!', 'good', 0);
       const [x, y] = stagePoint(s); burst(x, y, 40); setTimeout(() => burst(x - 120, y - 40, 24), 300);
-    });
+    }, this.root);
+  },
+  async autoStep() {
+    if (this.n < 12) { this.autoBusy = true; await this.fillAll(); this.autoBusy = false; this.autoUntil = performance.now() + 700; return; }
+    autoClick(this.root);
   },
   reset() {
     this.timer && this.timer.cancel(); this.n = 0; this.baking = false; const s = this.svg;
@@ -1833,6 +1989,7 @@ Modules.match = {
     $('[data-act="check"]', root).addEventListener('click', () => this.check());
     $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
     $('[data-act="timer"]', root).addEventListener('click', () => this.toggleTimer());
+    $('[data-act="skip3"]', root).addEventListener('click', () => { this.skipNow = true; });
     this.reset();
   },
   /* 3-minute class timer, always real time */
@@ -1840,10 +1997,10 @@ Modules.match = {
     const btn = $('[data-act="timer"]', this.root), clock = $('#clock3');
     if (this.timer) { this.stopTimer(); return; }
     banner('Ready? Let\'s start!', 'You have three minutes.', 1600);
-    const total = 180, t0 = performance.now() + 1600;
-    btn.textContent = 'Stop timer';
+    const total = 180, t0 = performance.now() + 1600; this.skipNow = false;
+    btn.textContent = 'Stop timer'; $('[data-act="skip3"]', this.root).hidden = false;
     const loop = now => {
-      const left = Math.max(0, total - Math.max(0, now - t0) / 1000);
+      const left = this.skipNow ? 0 : Math.max(0, total - Math.max(0, now - t0) / 1000);
       clock.textContent = mmss(left); clock.classList.toggle('hurry', left <= 10 && left > 0);
       if (left > 0) this.timer = requestAnimationFrame(loop);
       else { this.stopTimer(true); banner('Time\'s up!', 'Let\'s check your recipe.', 2600); celebrate(40); }
@@ -1853,7 +2010,7 @@ Modules.match = {
   stopTimer(finished) {
     cancelAnimationFrame(this.timer); this.timer = null;
     const clock = $('#clock3'); clock.classList.remove('hurry'); if (!finished) clock.textContent = '3:00'; else clock.textContent = '0:00';
-    $('[data-act="timer"]', this.root).textContent = 'Start · 3 min';
+    $('[data-act="timer"]', this.root).textContent = 'Start · 3 min'; $('[data-act="skip3"]', this.root).hidden = true;
   },
   reset() {
     this.stopTimer();
@@ -1998,7 +2155,7 @@ const Deck = {
     if (n === this.idx && !first) return;
     const prev = this.slides[this.idx], next = this.slides[n];
     if (!first) { const m = Modules[prev.dataset.mod]; m && m.leave && safe(() => m.leave()); }
-    Reader.stop(); $$('.overlay', stage).forEach(o => o.remove());
+    Reader.stop(); $$('.overlay', stage).forEach(o => o.remove()); Auto.enteredAt = performance.now();
     this.slides.forEach((s, i) => { s.classList.toggle('is-active', i === n); s.classList.toggle('is-before', i < n); s.classList.remove('play'); });
     void next.offsetWidth; next.classList.add('play');
     this.idx = n;
