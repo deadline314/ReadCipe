@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Vanilla Cupcakes Lesson</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2173,15 +2174,123 @@ const Deck = {
     stage.style.transform = `translate(-50%,-50%) scale(${scale})`;
   }
 };
+/* Slide titles shown in the presenter window */
+const TITLES = {
+  's-title': 'How to make vanilla cupcakes?', 's-choose': 'Which cupcake do you like?', 's-sort': 'Cut out and sort the steps',
+  's-match': 'Make your own cupcake recipe', 's-video': 'Watch the video and check', 's-ingr': 'Ingredients', 's-verbs': 'Kitchen words',
+  's-step1': 'Step 1 · Prepare the liquids', 's-step2': 'Step 2 · Prepare the dry ingredients', 's-step3': 'Step 3 · Whisk the eggs and sugar',
+  's-step41': 'Step 4-1 · Add the oil', 's-step42': 'Step 4-2 · Add vanilla and honey milk', 's-step5': 'Step 5 · Mix with flour',
+  's-step6': 'Step 6 · Fill the cups & bake', 's-recap': 'Is your recipe correct?', 's-thanks': 'Great job, everyone!'
+};
+const slideInfo = i => {
+  const sl = Deck.slides[i]; if (!sl) return null;
+  const n = $('.notes', sl);
+  return { title: TITLES[sl.id] || `Slide ${i + 1}`, lead: (n && n.dataset.lead) || sl.dataset.lead || '', html: n ? n.innerHTML : '<p>No notes for this slide.</p>' };
+};
+
+/* Presenter view: a separate window with the script, a timer and the next slide.
+   Falls back to the in-page notes panel when pop-ups are not allowed. */
+const Presenter = {
+  win: null, t0: 0, iv: null, size: 26,
+  isOpen() { return !!(this.win && !this.win.closed); },
+  open() {
+    if (this.isOpen()) { this.win.focus(); return true; }
+    let w = null;
+    try { w = window.open('', 'cupcake-presenter', 'popup=yes,width=980,height=720'); } catch (e) { w = null; }
+    if (!w) return false;
+    try { w.document.title; } catch (e) { return false; }   // must be same-origin to draw into it
+    this.win = w; this.build(w);
+    this.t0 = Date.now(); clearInterval(this.iv); this.iv = setInterval(() => this.tick(), 500);
+    this.render(); this.sync(); return true;
+  },
+  close() { if (this.isOpen()) safe(() => this.win.close()); this.win = null; clearInterval(this.iv); this.sync(); },
+  sync() { $('#nbNotes').setAttribute('aria-pressed', String(this.isOpen() || Notes.on)); },
+  build(w) {
+    const d = w.document;
+    d.open();
+    d.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Speaker notes · Presenter view</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+:root{--bg:#1C1E23;--line:#2C2F36;--fg:#ECEDEF;--dim:#9096A0;--accent:#F2B184;--green:#7BD88F;--violet:#B9A6FF;--red:#FF8A80}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:Nunito,"Segoe UI","Noto Sans TC",system-ui,sans-serif;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:14px;padding:16px 26px;border-bottom:1px solid var(--line)}
+.num{font-weight:900;font-size:24px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.lead{font-weight:800;font-size:14px;border-radius:999px;padding:3px 12px;background:var(--accent);color:#2a1f1d}
+.lead.ai{background:var(--violet)}
+.grow{flex:1}
+.clock{font:800 28px ui-monospace,"Cascadia Mono",Consolas,monospace;color:var(--green);font-variant-numeric:tabular-nums}
+button{font:800 14px Nunito,system-ui,sans-serif;color:var(--fg);background:#2C2F36;border:0;border-radius:8px;padding:6px 11px;cursor:pointer}
+button:hover{background:#383C45}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{flex:1;overflow:auto;padding:22px 26px 30px}
+h1{margin:0 0 14px;font-weight:900;font-size:calc(var(--fs) * 1.05)}
+.body{font-size:var(--fs);line-height:1.65;max-width:60em}
+.body p{margin:0 0 .55em}
+.body b{color:var(--accent)}
+.body .cue{color:var(--dim);font-size:.72em;font-weight:700}
+.body .ask{color:var(--violet)}
+footer{display:flex;align-items:center;gap:12px;padding:12px 26px;border-top:1px solid var(--line);color:var(--dim);font-weight:700;font-size:15px}
+footer b{color:var(--fg)}
+kbd{border:1px solid #444955;border-radius:5px;padding:0 6px;font:800 12px Nunito,sans-serif;color:var(--fg)}
+</style></head><body>
+<header><span class="num" id="num"></span><span class="lead" id="lead"></span><span class="grow"></span>
+<button id="smaller" title="Smaller text">A−</button><button id="bigger" title="Bigger text">A+</button>
+<button id="prev" title="Previous slide">←</button><button id="next" title="Next slide">→</button>
+<span class="clock" id="clock" title="Click to restart the timer" style="cursor:pointer">00:00</span></header>
+<main><h1 id="ttl"></h1><div class="body" id="body"></div></main>
+<footer><span>Next: <b id="nxt"></b></span><span class="grow"></span><span><kbd>←</kbd> <kbd>→</kbd> change slide · <kbd>F1</kbd> close · drag this window to another screen</span></footer>
+</body></html>`);
+    d.close();
+    d.documentElement.style.setProperty('--fs', this.size + 'px');
+    const on = (id, fn) => d.getElementById(id).addEventListener('click', fn);
+    on('prev', () => Deck.prev()); on('next', () => Deck.next());
+    on('bigger', () => this.font(2)); on('smaller', () => this.font(-2));
+    on('clock', () => { this.t0 = Date.now(); this.tick(); });
+    w.addEventListener('keydown', e => {
+      if (e.key === 'F1' || e.key === 'Escape') { e.preventDefault(); this.close(); window.focus(); return; }
+      if (['ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); Deck.next(); }
+      if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); Deck.prev(); }
+    });
+    w.addEventListener('pagehide', () => { this.win = null; clearInterval(this.iv); this.sync(); });
+  },
+  font(delta) { this.size = clamp(this.size + delta, 16, 48); if (this.isOpen()) this.win.document.documentElement.style.setProperty('--fs', this.size + 'px'); },
+  tick() {
+    if (!this.isOpen()) { this.win = null; clearInterval(this.iv); this.sync(); return; }
+    const s = Math.floor((Date.now() - this.t0) / 1000);
+    this.win.document.getElementById('clock').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  },
+  render() {
+    if (!this.isOpen()) return;
+    const d = this.win.document, cur = slideInfo(Deck.idx), nxt = slideInfo(Deck.idx + 1);
+    d.getElementById('num').textContent = `${Deck.idx + 1} / ${Deck.slides.length}`;
+    const lead = d.getElementById('lead'); lead.textContent = 'Lead: ' + cur.lead; lead.className = 'lead' + (cur.lead === 'AI' ? ' ai' : '');
+    d.getElementById('ttl').textContent = cur.title;
+    d.getElementById('body').innerHTML = cur.html;
+    const first = d.querySelector('#body p');   // skip a first line that only repeats the title
+    if (first && first.textContent.trim().replace(/[.!?]$/, '') === cur.title.replace(/[.!?]$/, '')) first.remove();
+    d.getElementById('nxt').textContent = nxt ? nxt.title : 'End of the lesson';
+    d.querySelector('main').scrollTop = 0;
+  }
+};
+window.addEventListener('pagehide', () => Presenter.close());
+
+/* F1 / notes button: presenter window first, in-page panel as fallback */
 const Notes = {
   el: $('#notes'), on: false,
-  toggle() { this.on = !this.on; this.el.classList.toggle('show', this.on); $('#nbNotes').setAttribute('aria-pressed', String(this.on)); this.render(); },
+  toggle() {
+    if (Presenter.isOpen()) { Presenter.close(); return; }
+    if (this.on) { this.show(false); return; }
+    if (Presenter.open()) return;
+    toast('Pop-up blocked here, so the notes open on this page.');
+    this.show(true);
+  },
+  show(v) { this.on = v; this.el.classList.toggle('show', v); Presenter.sync(); this.render(); },
   render() {
-    const sl = Deck.slides[Deck.idx], n = $('.notes', sl);
-    const lead = (n && n.dataset.lead) || sl.dataset.lead || '';
-    const who = $('.who', this.el); who.textContent = 'Lead: ' + lead; who.classList.toggle('ai', lead === 'AI');
-    $('.ttl', this.el).textContent = `Slide ${Deck.idx + 1}`;
-    $('.body', this.el).innerHTML = n ? n.innerHTML : '<p>No notes for this slide.</p>';
+    Presenter.render();
+    const info = slideInfo(Deck.idx);
+    const who = $('.who', this.el); who.textContent = 'Lead: ' + info.lead; who.classList.toggle('ai', info.lead === 'AI');
+    $('.ttl', this.el).textContent = `${Deck.idx + 1} / ${Deck.slides.length} · ${info.title}`;
+    $('.body', this.el).innerHTML = info.html;
   }
 };
 
@@ -2195,7 +2304,7 @@ window.addEventListener('keydown', e => {
     case 'ArrowLeft': case 'ArrowUp': case 'PageUp': e.preventDefault(); Deck.prev(); break;
     case 'Home': Deck.go(0); break;
     case 'End': Deck.go(Deck.slides.length - 1); break;
-    case 'Escape': if (Lightbox.isOpen) Lightbox.close(); else if (Notes.on) Notes.toggle(); else if (Draw.on) Draw.toggle(false); break;
+    case 'Escape': if (Lightbox.isOpen) Lightbox.close(); else if (Notes.on) Notes.show(false); else if (Draw.on) Draw.toggle(false); break;
     case 'f': case 'F': if (!e.ctrlKey && !e.metaKey) safe(() => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast('Full screen is not available here.'))); break;
     case 'c': case 'C': if (Draw.on) Draw.clearPage(); break;
   }
