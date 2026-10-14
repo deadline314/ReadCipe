@@ -26,9 +26,9 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
   background-color:var(--paper);
   background-image:linear-gradient(var(--grid) 3px,transparent 3px),linear-gradient(90deg,var(--grid) 3px,transparent 3px);
   background-size:48px 48px;background-position:-2px -2px;
-  transition:opacity .45s ease,transform .45s ease,visibility 0s linear .45s;transform:translateX(30px)}
+  transition:opacity .5s ease,transform .5s cubic-bezier(.2,.8,.3,1),visibility 0s linear .5s;transform:translateX(40px) scale(.97)}
 .slide.is-active{visibility:visible;opacity:1;transform:none;transition:opacity .45s ease,transform .45s ease}
-.slide.is-before{transform:translateX(-30px)}
+.slide.is-before{transform:translateX(-40px) scale(.97)}
 .slide .notes{display:none}
 
 /* entrance animations, replayed on every visit */
@@ -38,12 +38,17 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
 .slide.play [data-in="left"]{--anim:fromLeft}
 .slide.play [data-in="right"]{--anim:fromRight}
 .slide.play [data-in="drop"]{--anim:drop}
+.slide.play [data-in="stamp"]{--anim:stamp;animation-duration:.5s}
 /* entrance keyframes use the individual translate/scale properties so they compose with each element's own transform */
 @keyframes pop{from{opacity:0;scale:.6}to{opacity:1;scale:1}}
 @keyframes up{from{opacity:0;translate:0 40px}to{opacity:1;translate:0 0}}
 @keyframes fromLeft{from{opacity:0;translate:-60px 0}to{opacity:1;translate:0 0}}
 @keyframes fromRight{from{opacity:0;translate:60px 0}to{opacity:1;translate:0 0}}
 @keyframes drop{0%{opacity:0;translate:0 -80px}60%{opacity:1;translate:0 8px}100%{translate:0 0}}
+@keyframes stamp{0%{opacity:0;scale:2.4}70%{opacity:1;scale:.92}100%{scale:1}}
+@keyframes sway{0%,100%{rotate:-6deg}50%{rotate:6deg}}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -6px}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(252,231,214,.55)}100%{box-shadow:0 0 0 26px rgba(252,231,214,0)}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.7) rotate(20deg);opacity:.7}}
 @keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
@@ -53,6 +58,9 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
 /* decorations */
 .deco{position:absolute;pointer-events:none}
 .deco svg{width:100%;height:100%;overflow:visible}
+.sway{animation:sway 3.4s ease-in-out infinite;transform-origin:50% 10%}
+.float{animation:floaty 4s ease-in-out infinite}
+.slide.play .float[data-in]{animation:var(--anim,pop) .6s cubic-bezier(.2,.9,.3,1.3) both,floaty 4s ease-in-out 1s infinite;animation-delay:calc(var(--d,0) * 1ms),1s}
 .tw{animation:twinkle 2.6s ease-in-out infinite;transform-origin:center}
 .girl.bob img{animation:bob 3s ease-in-out infinite}
 .girl{position:absolute;pointer-events:none;filter:drop-shadow(0 6px 0 rgba(255,255,255,.9)) drop-shadow(0 8px 10px rgba(120,60,40,.15))}
@@ -153,22 +161,13 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
 .video-box video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 .video-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#FCE7D6;font:700 26px var(--body)}
 .video-empty .play{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center;margin:0 auto 14px}
-.qa{position:absolute;left:800px;top:130px;width:420px;display:flex;flex-direction:column;gap:14px}
-.qcard{position:relative;height:118px;perspective:900px;cursor:pointer;border:0;padding:0;background:none;text-align:left;font:inherit}
-.qcard .in{position:absolute;inset:0;transition:transform .6s cubic-bezier(.3,.9,.3,1.1);transform-style:preserve-3d}
-.qcard.open .in{transform:rotateX(180deg)}
-.qcard .f,.qcard .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:14px 18px;box-sizing:border-box;display:flex;gap:14px;align-items:center}
-.qcard .f{background:#fff;box-shadow:0 5px 0 rgba(234,176,127,.45)}
-.qcard .b{background:var(--lemon);transform:rotateX(180deg);font-weight:900;font-size:25px;color:#2a1f1d}
-.qcard .q{font-weight:900;font-size:23px;line-height:1.2;color:#2a1f1d}
-.qcard .qn{flex:none;width:48px;height:48px;border-radius:50%;background:var(--rose);color:#fff;font:700 24px var(--display);display:grid;place-items:center;-webkit-text-stroke:0}
-.qcard:focus-visible{outline:3px solid var(--noun);outline-offset:4px;border-radius:20px}
+.pulse{animation:pulse 1.6s ease-out infinite}
 /* ingredients */
-.ingr-head{position:absolute;left:48px;top:30px;display:flex;align-items:center;gap:24px}
-.ingr-head .label{background:#fff;border-radius:22px;padding:4px 30px;font-size:62px}
-.serve{display:flex;align-items:center;gap:10px;font:600 28px var(--display);color:#4E302C;background:#fff;border-radius:999px;padding:8px 10px 8px 22px}
+.ingr-head{position:absolute;left:48px;top:34px;display:flex;align-items:center;gap:16px;white-space:nowrap}
+.ingr-head .label{background:#fff;border-radius:22px;padding:4px 26px;font-size:52px}
+.serve{display:flex;align-items:center;gap:8px;font:600 24px var(--display);color:#4E302C;background:#fff;border-radius:999px;padding:8px 10px 8px 22px}
 .serve .seg{display:flex;background:#FBE2CF;border-radius:999px;padding:4px}
-.serve .seg button{border:0;background:none;font:600 26px var(--display);color:#8B5A48;padding:4px 18px;border-radius:999px;cursor:pointer}
+.serve .seg button{border:0;background:none;font:600 22px var(--display);color:#8B5A48;padding:4px 18px;border-radius:999px;cursor:pointer}
 .serve .seg button[aria-pressed="true"]{background:var(--apricot);color:#fff}
 .ready-count{font:600 24px var(--display);color:#2E6B44;background:#EFFAF2;border:3px solid #9FD2B1;border-radius:999px;padding:6px 18px}
 .ingr-grid{position:absolute;left:48px;top:142px;width:1000px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -218,7 +217,7 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
 .strip.wrong{border-style:solid;border-color:var(--verb);background:#FFF1EF;animation:shake .4s}
 .drag-ghost{position:absolute;z-index:50;pointer-events:none;transform:rotate(-2deg) scale(1.03);box-shadow:0 14px 26px rgba(90,40,30,.25)}
 .sort-side{position:absolute;left:740px;top:40px;width:500px}
-.sort-side .bubble-title{font-size:60px;text-align:center;margin:0}
+.sort-side .bubble-title{font-size:52px;text-align:center;margin:0}
 /* worksheet: match */
 .sheet{position:absolute;left:36px;top:24px;width:640px;height:672px;background:#fff;border-radius:6px;box-shadow:0 10px 24px rgba(90,40,30,.18);padding:14px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
 .sheet h3{margin:0;text-align:center;font:700 22px var(--body);color:#222}
@@ -244,8 +243,8 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
 .tray .pic{height:84px}
 .slot .pic{box-shadow:none;height:56px;cursor:grab}
 .match-side{position:absolute;left:712px;top:28px;width:540px}
-.match-side .bubble-title{font-size:44px;text-align:center;margin:0}
-.tray{margin-top:18px;min-height:200px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-content:flex-start;padding:14px;border:3px dashed #EBB98F;border-radius:22px;background:rgba(255,255,255,.6)}
+.match-side .bubble-title{font-size:46px;text-align:center;margin:0}
+.tray{margin-top:12px;min-height:200px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-content:flex-start;padding:14px;border:3px dashed #EBB98F;border-radius:22px;background:rgba(255,255,255,.6)}
 .tray.hover{background:#FFF6D6}
 .ws-controls{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
 .score{font:600 26px var(--display);color:#2E6B44;text-align:center;min-height:34px;margin-top:6px}
@@ -273,27 +272,112 @@ body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overfl
 #notes .body p{margin:0 0 8px}
 #notes .body b{color:var(--verb)}
 #notes .body .ask{color:var(--noun);font-weight:800}
+#notes .body .cue{color:#9A7A6C;font-size:15px;font-weight:700}
 #draw-layer{position:absolute;inset:0;width:1280px;height:720px;z-index:20;pointer-events:none}
 body.drawing #draw-layer{pointer-events:auto;cursor:crosshair}
 body.drawing.erasing #draw-layer{cursor:none}
 #eraser{position:absolute;width:36px;height:36px;margin:-18px 0 0 -18px;border:2px solid #6A3C3A;border-radius:50%;background:rgba(255,255,255,.5);z-index:21;pointer-events:none;display:none}
-#drawbar{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);z-index:40;display:flex;align-items:center;gap:8px;background:#3B2A28;padding:8px 12px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .3s;color:#FFF4EA;font:700 14px var(--body)}
+#drawbar{flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px);box-sizing:border-box;position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translate(-50%,calc(-100% - 40px));z-index:40;display:flex;align-items:center;gap:8px;background:#3B2A28;padding:8px 12px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .3s;color:#FFF4EA;font:700 14px var(--body);border-radius:24px}
 body.drawing #drawbar{transform:translate(-50%,0)}
 #drawbar .sw{width:28px;height:28px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}
 #drawbar .sw[aria-pressed="true"]{border-color:#fff;transform:scale(1.15)}
 #drawbar .sz{width:30px;height:30px;border-radius:50%;border:2px solid #7a6360;background:none;cursor:pointer;display:grid;place-items:center;padding:0}
 #drawbar .sz i{display:block;border-radius:50%;background:#FFF4EA}
 #drawbar .sz[aria-pressed="true"]{border-color:#fff}
-#drawbar .tb{background:#5a4542;border:0;color:#FFF4EA;font:800 13px var(--body);border-radius:999px;padding:6px 12px;cursor:pointer}
+#drawbar .tb[aria-pressed="true"]{background:#F7E35C;color:#3B2A28}
+#drawbar .tb{white-space:nowrap;background:#5a4542;border:0;color:#FFF4EA;font:800 13px var(--body);border-radius:999px;padding:6px 12px;cursor:pointer}
 #drawbar .hint{opacity:.7;font-size:12px;padding:0 4px}
 #lightbox{position:fixed;inset:0;z-index:60;background:rgba(59,42,40,.78);display:grid;place-items:center;opacity:0;visibility:hidden;transition:all .3s;cursor:zoom-out;padding:max(16px,env(safe-area-inset-left,0px))}
 #lightbox.show{opacity:1;visibility:visible}
 #lightbox .lb{display:flex;gap:10px;max-width:92vw;max-height:84vh;background:#fff;padding:12px;border-radius:18px;transform:scale(.9);transition:transform .3s}
 #lightbox.show .lb{transform:none}
 #lightbox img{max-height:calc(84vh - 24px);max-width:100%;min-width:0;object-fit:contain;border-radius:10px}
-#toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translate(-50%,-20px);z-index:55;background:#fff;border:3px solid var(--brown);color:var(--brown);font:900 18px var(--body);padding:8px 18px;border-radius:14px;opacity:0;transition:all .3s;pointer-events:none}
+#toast{max-width:calc(100vw - 48px);box-sizing:border-box;text-align:center;position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translate(-50%,-20px);z-index:55;background:#fff;border:3px solid var(--brown);color:var(--brown);font:900 18px var(--body);padding:8px 18px;border-radius:14px;opacity:0;transition:all .3s;pointer-events:none}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 .burst{position:absolute;pointer-events:none;z-index:15}
+
+/* ---------- v2 additions ---------- */
+/* title plan stickers */
+.plan{position:absolute;left:400px;right:60px;top:606px;display:flex;align-items:center;justify-content:center;gap:18px}
+.plan-pill{display:flex;align-items:center;gap:10px;white-space:nowrap;background:#fff;border-radius:999px;padding:8px 20px 8px 8px;font-weight:900;font-size:21px;color:#3B2A28;box-shadow:0 4px 0 rgba(234,176,127,.45)}
+.plan-pill .k{font:600 17px var(--display);letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--mint);border-radius:999px;padding:4px 12px}
+.plan-pill.next .k{background:var(--apricot)}
+.stamp{position:absolute;left:900px;top:150px;z-index:2;font:700 24px var(--display);color:var(--verb);border:4px solid var(--verb);border-radius:12px;padding:4px 14px;rotate:-8deg;background:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+/* choose: sentence frame */
+.frame{position:absolute;left:50%;top:548px;transform:translateX(-50%);padding:10px 28px;font-weight:900;font-size:30px;color:#2a1f1d;white-space:nowrap;border-radius:20px}
+.blank{display:inline-block;min-width:56px;text-align:center;border-bottom:4px solid var(--verb);color:var(--noun);padding:0 8px;margin:0 4px}
+.blank.wide{min-width:150px}
+.blank.pop{animation:pop .45s cubic-bezier(.2,.9,.3,1.6)}
+.chips{position:absolute;left:0;right:0;top:628px;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font:800 19px var(--body);color:#5B30E6;background:#fff;border:3px solid #CFC3F7;border-radius:999px;padding:6px 16px;cursor:pointer;transition:transform .15s,background .2s}
+.chip:hover{transform:translateY(-2px)}
+.chip[aria-pressed="true"]{background:#EEE8FF;border-color:var(--noun)}
+.chip:focus-visible{outline:3px solid var(--noun);outline-offset:2px}
+.chips .sep{width:14px}
+/* big countdown + banner overlays */
+.overlay{position:absolute;inset:0;z-index:16;display:grid;place-items:center;background:rgba(252,231,214,.6);pointer-events:none;animation:fadeIn .25s}
+.overlay.out{opacity:0;transition:opacity .35s}
+@keyframes fadeIn{from{opacity:0}}
+.overlay .ring{position:relative;width:260px;height:260px}
+.overlay .ring svg{width:100%;height:100%;rotate:-90deg}
+.overlay .ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 120px var(--display);color:var(--verb)}
+.overlay .ring b.tick{animation:pop .4s cubic-bezier(.2,.9,.3,1.6)}
+.overlay .msg{font:700 74px var(--display);color:var(--rose);-webkit-text-stroke:5px var(--brown);paint-order:stroke fill;background:#fff;padding:18px 48px;border-radius:40px;box-shadow:0 10px 0 rgba(234,176,127,.45);animation:pop .5s cubic-bezier(.2,.9,.3,1.5);text-align:center;max-width:1000px}
+.overlay .sub{display:block;font:800 26px var(--body);color:#4E302C;-webkit-text-stroke:0;margin-top:6px}
+/* sort side */
+.cutline{display:block;width:440px;height:60px;margin:14px auto 0}
+.sc-run{animation:cut 3.2s linear infinite}
+@keyframes cut{from{translate:0 0}to{translate:440px 0}}
+.howto{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;width:400px}
+.howto li{counter-increment:h;display:flex;gap:10px;align-items:center;background:#fff;border-radius:14px;padding:8px 14px;font-weight:900;font-size:20px;color:#2a1f1d;box-shadow:0 4px 0 rgba(234,176,127,.4)}
+.howto li::before{content:counter(h);flex:none;width:30px;height:30px;border-radius:50%;background:var(--rose);color:#fff;font:700 18px var(--display);display:grid;place-items:center}
+/* match side */
+.seq{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.seq li{font-weight:800;font-size:19px;color:#2a1f1d;background:rgba(255,255,255,.8);border-radius:12px;padding:5px 14px}
+.seq li b{color:var(--verb);font-weight:900}
+.clock3{font-size:36px;color:#4E302C;background:#fff;border-radius:14px;padding:0 14px;min-width:96px;text-align:center;box-shadow:0 4px 0 rgba(234,176,127,.45)}
+.clock3.hurry{color:var(--verb);animation:wiggle .5s ease-in-out infinite}
+/* video slide */
+.video-box{top:118px}
+.yt-url{margin-top:12px;font:700 14px var(--body);color:#D9BBA8;-webkit-user-select:text;user-select:text}
+.vid-speed{position:absolute;left:56px;top:532px;display:flex;align-items:center;gap:10px;font:600 20px var(--display);color:#8B5A48}
+.vid-speed .speed button{font-size:16px;padding:5px 14px}
+.vid-speed .hint{font:700 14px var(--body);color:#A88878}
+.watch{position:absolute;left:800px;top:110px;width:420px;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.watch button{width:100%;display:flex;align-items:center;gap:14px;background:#fff;border:0;border-radius:18px;padding:10px 16px;font:900 23px var(--body);color:#2a1f1d;text-align:left;cursor:pointer;box-shadow:0 5px 0 rgba(234,176,127,.45);transition:transform .2s,background .3s}
+.watch button:hover{transform:translateX(4px)}
+.watch button:focus-visible{outline:3px solid var(--noun);outline-offset:3px}
+.watch .qn{flex:none;width:42px;height:42px;border-radius:50%;background:var(--rose);color:#fff;font:700 22px var(--display);display:grid;place-items:center;transition:background .3s}
+.watch li.done button{background:#F2FBF5}
+.watch li.done .qn{background:var(--mint)}
+.ask-card{position:absolute;left:800px;top:520px;width:420px;padding:14px 18px;box-sizing:border-box;text-align:center;border-radius:22px}
+.ask-card .q{font:700 30px var(--display);color:#4E302C}
+.ask-card .row{display:flex;gap:10px;justify-content:center;margin-top:10px}
+.ask-card.shake{animation:shake .45s}
+/* step slides: read together */
+.read-row{display:flex;align-items:center;gap:10px;margin-top:14px}
+.read-row .grp{font:600 18px var(--display);color:#fff;background:var(--noun);border-radius:999px;padding:4px 14px;letter-spacing:.04em}
+.w{border-radius:6px;transition:background .2s,box-shadow .2s}
+.w.lit{background:var(--lemon);box-shadow:0 0 0 3px var(--lemon)}
+.ing.reading{transform:scale(1.06);box-shadow:0 0 0 5px var(--lemon),0 10px 20px rgba(90,40,30,.18);z-index:2}
+/* thanks */
+.bighand{position:absolute;left:50%;top:620px;transform:translateX(-50%);font-size:22px}
+.bighand:hover:not(:disabled){transform:translateX(-50%) translateY(-2px)}
+.bighand:active:not(:disabled){transform:translateX(-50%) scale(.97)}
+.pill{top:528px}
+/* on-screen controls for phone / tablet */
+#navbtns{position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:44;display:flex;gap:8px}
+#navbtns button{width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.9);color:#6A3C3A;box-shadow:0 4px 14px rgba(90,40,30,.22);display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .15s,background .2s}
+#navbtns button:active{transform:scale(.92)}
+#navbtns button:focus-visible{outline:3px solid var(--noun);outline-offset:2px}
+#navbtns button[aria-pressed="true"]{background:var(--verb);color:#fff}
+#navbtns .arrow{background:var(--apricot);color:#fff}
+#navbtns svg{width:24px;height:24px}
+@media (hover:hover) and (pointer:fine){#navbtns{opacity:.45;transition:opacity .2s}#navbtns:hover,#navbtns:focus-within{opacity:1}#navbtns button{width:40px;height:40px}#navbtns svg{width:20px;height:20px}}
+#counter{right:auto;left:max(14px,env(safe-area-inset-left,0px))}
+#notes{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+#draw-layer{touch-action:none}
+@media (max-width:700px){#drawbar .hint{display:none}#drawbar{gap:5px;padding:6px 8px}#help{display:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 
@@ -311,15 +395,15 @@ body.drawing #drawbar{transform:translate(-50%,0)}
 
 <div id="viewport"><div id="stage">
 
-<!-- 1. Title (Teacher) -->
+<!-- 1. title -->
 <section class="slide" data-lead="Teacher" id="s-title">
   <div class="deco tw" style="left:120px;top:58px;width:64px;height:64px"><svg><use href="#i-cherry"/></svg></div>
   <div class="deco tw" style="left:470px;top:70px;width:56px;height:56px;animation-delay:.5s"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:730px;top:70px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:930px;top:140px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:60px;top:420px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:520px;top:620px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:1150px;top:610px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:730px;top:70px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:930px;top:140px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:60px;top:420px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:520px;top:620px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:1150px;top:610px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
   <div class="deco tw" style="left:1120px;top:-10px;width:120px;height:120px"><svg><use href="#i-star"/></svg></div>
   <div class="deco tw" style="left:1210px;top:90px;width:80px;height:80px;animation-delay:.8s"><svg><use href="#i-star"/></svg></div>
   <div class="deco tw" style="left:-20px;top:600px;width:130px;height:130px;animation-delay:.3s"><svg><use href="#i-star"/></svg></div>
@@ -328,107 +412,188 @@ body.drawing #drawbar{transform:translate(-50%,0)}
   <div class="deco tw" style="left:690px;top:150px;width:30px;height:30px;animation-delay:.6s"><svg><use href="#i-spark"/></svg></div>
   <div class="deco tw" style="left:1100px;top:380px;width:44px;height:44px;animation-delay:.4s"><svg><use href="#i-spark"/></svg></div>
   <div class="deco tw" style="left:380px;top:510px;width:40px;height:40px;animation-delay:.9s"><svg><use href="#i-spark"/></svg></div>
-  <div class="title-card card" data-in style="--d:100"><h1 class="bubble-title split">How to make vanilla cupcakes?</h1></div>
+  <div class="title-card card float" data-in style="--d:100"><h1 class="bubble-title split">How to make vanilla cupcakes?</h1></div>
   <div class="girl bob" data-in="left" style="left:70px;top:110px;width:330px"><img data-img="girl_wave.webp" alt="Chef girl waving"></div>
+  <div class="stamp" data-in="stamp" style="--d:2100">Not baking today!</div>
+  <div class="plan">
+    <div class="plan-pill" data-in="up" style="--d:1500"><span class="k">Today</span>Learn the ingredients &amp; steps</div>
+    <div class="plan-pill next" data-in="up" style="--d:1800"><span class="k">Next week</span>Bake together</div>
+  </div>
   <aside class="notes" data-lead="Teacher">
-    <p><b>Warm-up (Teacher).</b> Today we are going to bake! Read the title together: “How to make vanilla cupcakes?”</p>
-    <p class="ask">Ask: Have you ever eaten a cupcake? What flavor do you like?</p>
-    <p>Middle-click to draw on the slide. Circle the word “vanilla”.</p>
+    <p>Good afternoon, everyone. How are you?</p>
+    <p>Today, we are going to learn the steps for making vanilla cupcakes.</p>
+    <p><b>★ We are not baking today.</b></p>
+    <p>Today, we will learn the ingredients and the steps.</p>
+    <p>Next week, we will make the cupcakes together.</p>
   </aside>
 </section>
-
-<!-- 2. Choose one (Teacher) -->
+<!-- 2. choose -->
 <section class="slide" data-lead="Teacher" id="s-choose" data-mod="choose">
   <div class="deco tw" style="left:60px;top:40px;width:70px;height:70px"><svg><use href="#i-spark"/></svg></div>
   <div class="deco tw" style="left:1120px;top:40px;width:70px;height:70px;animation-delay:.6s"><svg><use href="#i-spark"/></svg></div>
-  <div class="deco" style="left:330px;top:60px;width:56px;height:56px;color:#EDB4A6"><svg><use href="#i-heart"/></svg></div>
-  <div class="deco" style="left:880px;top:70px;width:56px;height:56px;color:#F2A6AE"><svg><use href="#i-heart"/></svg></div>
-  <div class="deco" style="left:150px;top:600px;width:56px;height:56px;color:#F2C8A6"><svg><use href="#i-heart"/></svg></div>
-  <div class="deco" style="left:1110px;top:590px;width:56px;height:56px;color:#EDB4A6"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco sway" style="left:330px;top:60px;width:56px;height:56px;color:#EDB4A6"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco sway" style="left:880px;top:70px;width:56px;height:56px;color:#F2A6AE"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco sway" style="left:150px;top:600px;width:56px;height:56px;color:#F2C8A6"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco sway" style="left:1110px;top:590px;width:56px;height:56px;color:#EDB4A6"><svg><use href="#i-heart"/></svg></div>
   <div class="choose-row">
-    <button class="pick" data-in="up" style="--d:100;left:70px;top:190px" data-k="1" aria-label="Cupcake 1, s'mores"><img data-img="cup1.webp" alt=""><span class="num" style="left:-6px;bottom:6px">1</span><span class="votes">0</span><span class="crown">Top pick</span></button>
-    <button class="pick" data-in="drop" style="--d:250;left:490px;top:60px" data-k="2" aria-label="Cupcake 2, snowman"><img data-img="cup2.webp" alt=""><span class="num" style="left:-30px;top:110px">2</span><span class="votes">0</span><span class="crown">Top pick</span></button>
-    <button class="pick" data-in="up" style="--d:400;left:910px;top:190px" data-k="3" aria-label="Cupcake 3, marshmallow"><img data-img="cup3.webp" alt=""><span class="num" style="left:-8px;bottom:10px">3</span><span class="votes">0</span><span class="crown">Top pick</span></button>
+    <button class="pick" data-in="up" style="--d:100;left:70px;top:150px" data-k="1" aria-label="Cupcake 1, s'mores"><img data-img="cup1.webp" alt=""><span class="num" style="left:-6px;bottom:6px">1</span><span class="votes">0</span><span class="crown">Top pick</span></button>
+    <button class="pick" data-in="drop" style="--d:250;left:490px;top:28px" data-k="2" aria-label="Cupcake 2, snowman"><img data-img="cup2.webp" alt=""><span class="num" style="left:-30px;top:110px">2</span><span class="votes">0</span><span class="crown">Top pick</span></button>
+    <button class="pick" data-in="up" style="--d:400;left:910px;top:150px" data-k="3" aria-label="Cupcake 3, marshmallow"><img data-img="cup3.webp" alt=""><span class="num" style="left:-8px;bottom:10px">3</span><span class="votes">0</span><span class="crown">Top pick</span></button>
   </div>
-  <h2 class="bubble-title split" style="position:absolute;left:0;right:0;top:470px;text-align:center;font-size:96px;margin:0">Choose one</h2>
-  <div style="position:absolute;left:0;right:0;top:610px;display:flex;justify-content:center;gap:10px;--d:600" data-in="up">
-    <span class="hl" style="font-size:22px;padding:6px 16px">Click a cupcake to vote</span>
-    <button class="btn small" data-act="reset">Reset votes</button>
+  <h2 class="bubble-title split" style="position:absolute;left:0;right:0;top:452px;text-align:center;font-size:82px;margin:0">Choose one</h2>
+  <div class="frame card" data-in="up" style="--d:700">I like number <b class="blank" id="fNum">?</b> because it is <b class="blank wide" id="fWord">?</b>.</div>
+  <div class="chips" data-in="up" style="--d:850">
+    <button class="chip" data-w="cute">cute</button><button class="chip" data-w="colourful">colourful</button><button class="chip" data-w="yummy">yummy</button><button class="chip" data-w="pretty">pretty</button><button class="chip" data-w="sweet">sweet</button>
+    <span class="sep"></span><button class="btn small go" data-act="think">Think · 5 s</button><button class="btn small" data-act="reset">Reset</button>
   </div>
   <aside class="notes" data-lead="Teacher">
-    <p><b>Warm-up (Teacher).</b> Look at these three cupcakes. Which one do you want to eat?</p>
-    <p>Click a cupcake once for each student who picks it. The top pick gets a label.</p>
-    <p class="ask">Ask: Why do you like it? What is on top? (chocolate, marshmallows, a snowman)</p>
+    <p><b>Which cupcake do you like?</b></p>
+    <p>Look at these cupcakes. Which one do you like? Number one, two, or three?</p>
+    <p>Think for five seconds. <span class="cue">(Click “Think · 5 s”.)</span></p>
+    <p>Now, talk with your partner. Tell your partner which cupcake you like and why.</p>
+    <p><b>★ You can use this sentence:</b> “I like number 2 because it is cute.” (it is colourful)</p>
+    <p class="cue">Click a cupcake to fill in the number and add a vote. Click a word to fill in the reason.</p>
   </aside>
 </section>
-
-<!-- 3. Video + Q&A -->
-<section class="slide" data-lead="Video + Q&amp;A" id="s-video" data-mod="video">
-  <div class="deco tw" style="left:1180px;top:600px;width:90px;height:90px"><svg><use href="#i-star"/></svg></div>
-  <div class="deco" style="left:20px;top:620px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div style="position:absolute;left:56px;top:34px" data-in="left"><span class="tag">Watch &amp; Talk</span></div>
+<!-- 3. sort -->
+<section class="slide" data-lead="Teacher" id="s-sort" data-mod="sort">
+  <div class="deco tw" style="left:1180px;top:640px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
+  <div class="sort-wrap"><ul class="sortlist" id="sortlist"></ul>
+    <div class="ws-controls"><button class="btn go" data-act="check">Check the order</button><button class="btn" data-act="shuffle">Shuffle</button></div>
+    <div class="score" id="sortScore"></div>
+  </div>
+  <div class="sort-side">
+    <h2 class="bubble-title split">Cut out and sort the steps one by one.</h2>
+    <svg class="cutline" viewBox="0 0 440 60" aria-hidden="true"><line x1="10" y1="30" x2="430" y2="30" stroke="#C9A08A" stroke-width="3" stroke-dasharray="10 8"/><g class="sc-run"><use href="#i-scissors" x="-22" y="8" width="44" height="44"/></g></svg>
+    <ol class="howto">
+      <li data-in="up" style="--d:900">Take out your worksheet.</li>
+      <li data-in="up" style="--d:1050">Cut out the steps, pictures and ingredients.</li>
+      <li data-in="up" style="--d:1200">Cut carefully!</li>
+    </ol>
+  </div>
+  <div class="girl bob" data-in="right" style="--d:400;left:1050px;top:470px;width:210px"><img data-img="girl_bowl.webp" alt=""></div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>★ Cut out and sort the steps</b></p>
+    <p>Now, it's your turn.</p>
+    <p>Take out your worksheet.</p>
+    <p>Cut out all the steps and pictures and ingredients.</p>
+    <p>Please cut them out carefully.</p>
+    <p class="cue">On screen: drag the strips to practise together, then click “Check the order”.</p>
+  </aside>
+</section>
+<!-- 4. match -->
+<section class="slide" data-lead="Teacher" id="s-match" data-mod="match">
+  <div class="sheet" data-in="left">
+    <h3>Vanilla Cupcake Recipe</h3>
+    <table><colgroup><col style="width:34px"><col style="width:36%"><col style="width:32%"><col></colgroup>
+      <thead><tr><th></th><th>Steps</th><th>Pictures</th><th>Notes</th></tr></thead>
+      <tbody id="matchRows"></tbody></table>
+    <div class="ingbox"><b>Ingredients</b><div class="list" id="ingList"></div></div>
+  </div>
+  <div class="match-side">
+    <h2 class="bubble-title split">Make your own cupcake recipe</h2>
+    <ol class="seq">
+      <li data-in="right" style="--d:700"><b>First,</b> take your coloured sheet.</li>
+      <li data-in="right" style="--d:850"><b>Then,</b> put the steps in the correct order.</li>
+      <li data-in="right" style="--d:1000"><b>Next,</b> match each step with the correct picture.</li>
+      <li data-in="right" style="--d:1150"><b>Finally,</b> check the steps, pictures and ingredients.</li>
+    </ol>
+    <div class="tray" id="tray"></div>
+    <div class="ws-controls"><span class="clock3 timer" id="clock3">3:00</span><button class="btn go" data-act="timer">Start · 3 min</button><button class="btn go" data-act="check">Check</button><button class="btn" data-act="reset">Start over</button></div>
+    <div class="score" id="matchScore"></div>
+  </div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Make your own cupcake recipe.</b></p>
+    <p>Now, make your own cupcake recipe.</p>
+    <p><b>First</b>, take your coloured sheet.</p>
+    <p><b>Then</b>, put the steps in the correct order.</p>
+    <p><b>Next</b>, match each step with the correct picture.</p>
+    <p><b>Finally</b>, check the steps, pictures, and ingredients on your coloured sheet.</p>
+    <p>You have three minutes. Ready? Let's start! <span class="cue">(Click “Start · 3 min”.)</span></p>
+  </aside>
+</section>
+<!-- 5. video -->
+<section class="slide" data-lead="Teacher" id="s-video" data-mod="video">
+  <div class="deco tw" style="left:1180px;top:24px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
+  <div class="deco sway" style="left:20px;top:630px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:740px;top:40px;width:40px;height:56px"><svg><use href="#i-tulip"/></svg></div>
+  <div style="position:absolute;left:56px;top:34px" data-in="left"><span class="tag">Watch &amp; Check</span></div>
   <div class="video-box" data-in="up" style="--d:100">
     <video id="vid" controls playsinline hidden></video>
     <div class="video-empty" id="vidEmpty">
       <div>
-        <div class="play"><svg width="50" height="50" viewBox="0 0 50 50"><path d="M16 10L40 25L16 40Z" fill="#FCE7D6"/></svg></div>
-        Your video goes here
-        <div style="margin-top:14px"><label class="btn" for="vidFile" style="display:inline-block">Choose a video file</label><input id="vidFile" type="file" accept="video/*" hidden></div>
+        <div class="play pulse"><svg width="50" height="50" viewBox="0 0 50 50"><path d="M16 10L40 25L16 40Z" fill="#FCE7D6"/></svg></div>
+        <div style="font-size:28px">How to make vanilla cupcakes</div>
+        <div style="margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <a class="btn go" href="https://www.youtube.com/watch?v=dGgE68DBvkw" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+          <label class="btn" for="vidFile">Play a video file</label><input id="vidFile" type="file" accept="video/*" hidden>
+        </div>
+        <div class="yt-url">https://www.youtube.com/watch?v=dGgE68DBvkw</div>
       </div>
     </div>
   </div>
-  <div class="qa">
-    <button class="qcard" data-in="right" style="--d:200"><div class="in"><div class="f"><span class="qn">1</span><span class="q">Which cupcake did you choose? Why?</span></div><div class="b">“I chose number __ because it looks yummy!”</div></div></button>
-    <button class="qcard" data-in="right" style="--d:300"><div class="in"><div class="f"><span class="qn">2</span><span class="q">What is inside a vanilla cupcake?</span></div><div class="b">Flour, eggs, sugar, milk, oil… and vanilla!</div></div></button>
-    <button class="qcard" data-in="right" style="--d:400"><div class="in"><div class="f"><span class="qn">3</span><span class="q">Where do we bake cupcakes?</span></div><div class="b">In the oven!</div></div></button>
-    <button class="qcard" data-in="right" style="--d:500"><div class="in"><div class="f"><span class="qn">4</span><span class="q">How many cupcakes will our recipe make?</span></div><div class="b">12 cupcakes</div></div></button>
+  <div class="vid-speed" data-in="up" style="--d:300">Speed <span class="speed" role="group" aria-label="Video speed"><button data-r="1">1×</button><button data-r="1.5">1.5×</button><button data-r="2" aria-pressed="true">2×</button></span><span class="hint">On YouTube: Settings → Playback speed → 2</span></div>
+  <ol class="watch">
+    <li data-in="right" style="--d:250"><button><span class="qn">1</span>Please watch carefully.</button></li>
+    <li data-in="right" style="--d:350"><button><span class="qn">2</span>Pay attention to the steps.</button></li>
+    <li data-in="right" style="--d:450"><button><span class="qn">3</span>Check your recipe.</button></li>
+    <li data-in="right" style="--d:550"><button><span class="qn">4</span>Wrong order? Change it!</button></li>
+    <li data-in="right" style="--d:650"><button><span class="qn">5</span>Discuss with your group.</button></li>
+  </ol>
+  <div class="ask-card card" data-in="up" style="--d:800">
+    <div class="q">Is your recipe correct now?</div>
+    <div class="row"><button class="btn go" data-act="yes">Yes!</button><button class="btn" data-act="no">Not yet</button></div>
   </div>
-  <div class="girl" data-in="up" style="--d:500;left:600px;top:556px;width:150px"><img data-img="girl_pin.webp" alt=""></div>
-  <aside class="notes" data-lead="Video + Q&amp;A">
-    <p><b>Your video and Q&amp;A.</b> Click “Choose a video file” to load the video from this computer, then play it.</p>
-    <p>After the video, click each question card to flip it and show a sample answer.</p>
+  <div class="girl bob" data-in="up" style="--d:500;left:560px;top:556px;width:150px"><img data-img="girl_pin.webp" alt=""></div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Great job!</b></p>
+    <p>Now, let's watch a short video. Please watch carefully. Pay attention to the steps.</p>
+    <p>Check your recipe. If the order is not correct, change it. Make your recipe correct.</p>
+    <p>Ready? Let's watch! <span class="cue">(Play at 2× speed. On YouTube: Settings → Playback speed → 2.)</span></p>
+    <p>You can discuss with your group members.</p>
+    <p>Is your recipe correct now?</p>
+    <p class="cue">Video: https://www.youtube.com/watch?v=dGgE68DBvkw</p>
   </aside>
 </section>
-
-<!-- 4. Ingredients (AI) -->
+<!-- 6. ingr -->
 <section class="slide" data-lead="AI" id="s-ingr" data-mod="ingredients">
   <div class="deco tw" style="left:1180px;top:140px;width:70px;height:70px"><svg><use href="#i-star"/></svg></div>
   <div class="deco tw" style="left:1120px;top:60px;width:44px;height:44px;animation-delay:.5s"><svg><use href="#i-spark"/></svg></div>
-  <div class="deco" style="left:1180px;top:260px;width:40px;height:56px"><svg><use href="#i-tulip"/></svg></div>
+  <div class="deco sway" style="left:1180px;top:260px;width:40px;height:56px"><svg><use href="#i-tulip"/></svg></div>
   <div class="ingr-head" data-in="left">
     <span class="label step-word">INGREDIENTS</span>
     <div class="serve">Make
       <div class="seg" role="group" aria-label="Number of cupcakes">
         <button data-f="0.5" aria-pressed="false">6</button><button data-f="1" aria-pressed="true">12</button><button data-f="2" aria-pressed="false">24</button>
       </div> cupcakes</div>
-    <span class="ready-count" id="readyCount">Ready 0 / 9</span>
+    <span class="ready-count" id="readyCount">Ready 0 / 9</span><button class="btn go" data-act="read">Read together</button>
   </div>
   <div class="ingr-grid" id="ingrGrid"></div>
   <div class="girl bob" data-in="right" style="--d:500;left:1060px;top:430px;width:210px"><img data-img="girl_bowl.webp" alt=""></div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Before we bake, let's check our ingredients. This recipe makes twelve cupcakes.</p>
-    <p>Let's read them together: cake flour, one hundred ninety grams. Baking powder, one and a half teaspoons. Salt, a quarter teaspoon. Sunflower oil, one hundred twenty grams. Sugar, one hundred ten grams. Three eggs. One teaspoon of vanilla extract. Milk, forty grams. Honey, thirty grams.</p>
-    <p>Click each card when the ingredient is ready. Try the 6 / 12 / 24 switch: <span class="ask">If we make 24 cupcakes, how many eggs do we need?</span> (6)</p>
-    <p>The small label shows which step uses each ingredient.</p>
+    <p><b>Now, let's look at the ingredients.</b></p>
+    <p>We need these ingredients to make vanilla cupcakes. Let's read them together. <span class="cue">(Click “Read together”: each card lights up in turn.)</span></p>
+    <p>Cake flour, 190 grams. Baking powder, one and a half teaspoons. Salt, a quarter teaspoon. Sunflower oil, 120 grams. Sugar, 110 grams. Eggs, three. Vanilla extract, one teaspoon. Milk, 40 grams. Honey, 30 grams.</p>
+    <p>These are the ingredients for our cupcakes.</p>
+    <p>Great job! Let's move on to the next step.</p>
+    <p class="cue">Extra: switch 6 / 12 / 24 and ask “If we make 24 cupcakes, how many eggs do we need?” (6)</p>
   </aside>
 </section>
-
-<!-- 5. Cooking verbs (AI) -->
+<!-- 7. verbs -->
 <section class="slide" data-lead="AI" id="s-verbs" data-mod="verbs">
   <div class="deco tw" style="left:1170px;top:30px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
-  <div class="deco" style="left:30px;top:640px;width:50px;height:50px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:30px;top:640px;width:50px;height:50px"><svg><use href="#i-cherry"/></svg></div>
   <h2 class="bubble-title split" style="position:absolute;left:60px;top:36px;margin:0;font-size:70px">Kitchen words</h2>
   <span class="hl" style="position:absolute;left:720px;top:58px;font-size:22px" data-in="right">Click a card to flip it</span>
   <div class="verbs" id="verbs"></div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Here are six action words we will use today. Listen and repeat: Mix. Sieve. Whisk. Add. Spoon. Bake.</p>
+    <p><b>Kitchen words.</b> Here are six action words for our recipe. Listen and repeat: Mix. Sieve. Whisk. Add. Spoon. Bake.</p>
     <p>Click a card to flip it and read the sentence together.</p>
-    <p class="ask">Ask: Show me “whisk” with your hand! Show me “mix”!</p>
+    <p>Show me “whisk” with your hand! Show me “mix”!</p>
   </aside>
 </section>
-
-<!-- 6. Step 1 -->
-<section class="slide" data-lead="AI" id="s-step1" data-mod="step1">
+<!-- 8. step1 -->
+<section class="slide" data-lead="AI" id="s-step1" data-group="1" data-mod="step1">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_pin.webp" alt=""></div>
@@ -453,15 +618,16 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     <div class="polaroid" style="left:420px;top:-6px;width:150px;height:150px;transform:rotate(5deg);--d:500" data-zoom="ph_liquids.webp" data-in><img data-img="ph_liquids.webp" alt="Milk, honey and a bowl"><span>photo</span></div>
   </div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step one: prepare the liquids. We <b>mix</b> milk and honey. Then we <b>heat</b> them in the microwave for thirty seconds, and let it cool.</p>
-    <p>Let's try it. Add the milk… add the honey… now press Heat. The microwave is on! Thirty seconds… ding! Stir it well, then let it cool down.</p>
-    <p class="ask">Ask: What do we mix in step one? (milk and honey) How long do we heat it? (30 seconds)</p>
-    <p>Timers run fast by default. Switch to “Real” to use real time.</p>
+    <p><b>Now, let's look at step one.</b></p>
+    <p>Group 1, please read Step 1 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, mix the milk and honey. Then, heat it and let it cool.</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: Add milk → Add honey → Heat (30 s) → Stir → Let it cool.</p>
   </aside>
 </section>
-
-<!-- 7. Step 2 -->
-<section class="slide flip" data-lead="AI" id="s-step2" data-mod="step2">
+<!-- 9. step2 -->
+<section class="slide flip" data-lead="AI" id="s-step2" data-group="2" data-mod="step2">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="right" style="width:210px;top:4px"><img data-img="girl_bowl.webp" alt=""></div>
@@ -486,15 +652,16 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:130px;transform:rotate(-5deg);--d:500" data-zoom="p2.webp" data-in><img data-img="p2.webp" alt="Sieving flour"><span>picture</span></div>
   </div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step two: prepare the dry ingredients. Put the cake flour, the baking powder and the salt in the <b>sieve</b>.</p>
-    <p>Now shake, shake, shake! Sieving makes the flour light and fluffy, with no lumps.</p>
-    <p class="ask">Ask: What three dry ingredients do we sieve? (cake flour, baking powder, salt)</p>
-    <p>Students can call out “Shake!” each time you click.</p>
+    <p><b>Now, let's look at step two.</b></p>
+    <p>Group 2, please read Step 2 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, put the cake flour, baking powder, and salt together. Then, sieve them. Shake, shake, shake!</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: add the three dry ingredients, then click “Shake the sieve” six times.</p>
   </aside>
 </section>
-
-<!-- 8. Step 3 -->
-<section class="slide" data-lead="AI" id="s-step3" data-mod="step3">
+<!-- 10. step3 -->
+<section class="slide" data-lead="AI" id="s-step3" data-group="3" data-mod="step3">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_spatula.webp" alt=""></div>
@@ -520,14 +687,16 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     <div class="polaroid" style="left:486px;top:2px;width:84px;height:120px;transform:rotate(-3deg);--d:600" data-zoom="p3a.webp,p3b.webp" data-in><img data-img="p3b.webp" alt="Adding sugar"><span>+ sugar</span></div>
   </div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step three: <b>whisk</b> the eggs and sugar. Crack three eggs into the bowl. Whisk on high speed for two minutes. Bzzzz!</p>
-    <p>Now add the sugar, one hundred ten grams, and whisk again until it is pale and creamy.</p>
-    <p class="ask">Ask: What color is the mixture now? (pale yellow) How does it feel? (creamy, fluffy)</p>
+    <p><b>Now, let's look at step three.</b></p>
+    <p>Group 3, please read Step 3 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, whisk the eggs on high speed for 2 minutes. Then, add the sugar and mix until creamy.</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: Crack 3 eggs → Whisk 2 min → Add sugar → Whisk until creamy.</p>
   </aside>
 </section>
-
-<!-- 9. Step 4-1 -->
-<section class="slide flip" data-lead="AI" id="s-step41" data-mod="step41">
+<!-- 11. step41 -->
+<section class="slide flip" data-lead="AI" id="s-step41" data-group="4" data-mod="step41">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="right" style="width:200px;top:4px"><img data-img="girl_spatula.webp" alt=""></div>
@@ -554,14 +723,16 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:150px;transform:rotate(-5deg);--d:500" data-zoom="ph_oil.webp" data-in><img data-img="ph_oil.webp" alt="Pouring oil from the side"><span>from the side</span></div>
   </div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step four, part one: add the <b>sunflower seed oil</b>. Pour it slowly, from the side of the bowl.</p>
-    <p>Hold the button to pour. Keep the slider on slow. Oh no, too fast! Slowly, slowly… one hundred twenty grams. Now whisk for another three minutes.</p>
-    <p class="ask">Ask: Do we pour the oil fast or slow? (slowly) Where do we pour it? (from the side)</p>
+    <p><b>Now, let's look at step four, part one.</b></p>
+    <p>Group 4, please read Step 4 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, add the sunflower seed oil slowly, from the side. Then, whisk for another 3 minutes.</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: hold “Hold to pour”. If the slider is on fast, the screen says “Too fast!”.</p>
   </aside>
 </section>
-
-<!-- 10. Step 4-2 -->
-<section class="slide" data-lead="AI" id="s-step42" data-mod="step42">
+<!-- 12. step42 -->
+<section class="slide" data-lead="AI" id="s-step42" data-group="4" data-mod="step42">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_bowl.webp" alt=""></div>
@@ -585,14 +756,16 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     <div class="polaroid" style="left:420px;top:-6px;width:150px;height:170px;transform:rotate(5deg);--d:500" data-zoom="p4a.webp,p4b.webp" data-in><img data-img="p4b.webp" alt="Adding vanilla and honey milk"><span>picture</span></div>
   </div>
   <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step four, part two: now the flavor! Add one teaspoon of <b>vanilla extract</b>. Smell it, mmm! Then add the honey milk from step one.</p>
-    <p>Now mix with a spatula. Drag around the bowl, round and round, until everything is the same color.</p>
-    <p class="ask">Ask: Which liquid did we make in step one? (honey milk) What gives the cupcake its flavor? (vanilla)</p>
+    <p><b>Now, let's look at step four, part two.</b></p>
+    <p>Group 4, please read Step 4 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, add the vanilla extract. Then, add the honey milk and mix with a spatula.</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: add both, then drag round and round on the bowl to mix.</p>
   </aside>
 </section>
-
-<!-- 11. Step 5 -->
-<section class="slide flip" data-lead="AI" id="s-step5" data-mod="step5">
+<!-- 13. step5 -->
+<section class="slide flip" data-lead="Teacher" id="s-step5" data-group="5" data-mod="step5">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="right" style="width:200px;top:4px"><img data-img="girl_spatula.webp" alt=""></div>
@@ -613,15 +786,17 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     </div>
     <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:150px;transform:rotate(-5deg);--d:500" data-zoom="ph_mix.webp" data-in><img data-img="ph_mix.webp" alt="Folding flour into batter"><span>mix gently</span></div>
   </div>
-  <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step five: mix with flour. Don't add all the flour at once! Add it in three or four parts.</p>
-    <p>Add some flour, then mix gently with the spatula. Drag slowly around the bowl until the white flour disappears. Then add more.</p>
-    <p class="ask">Ask: Do we mix fast or gently? (gently) How many times do we add flour? (three or four)</p>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Now, let's look at step five.</b></p>
+    <p>Group 5, please read Step 5 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, add some of the flour. Then, mix gently. Do this 3 or 4 times.</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: Add flour, drag on the bowl until the white flour is gone, then add more.</p>
   </aside>
 </section>
-
-<!-- 12. Step 6 -->
-<section class="slide" data-lead="AI" id="s-step6" data-mod="step6">
+<!-- 14. step6 -->
+<section class="slide" data-lead="Teacher" id="s-step6" data-group="6" data-mod="step6">
   <div class="step-text">
     <div class="step-head">
       <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_pin.webp" alt=""></div>
@@ -642,83 +817,49 @@ body.drawing #drawbar{transform:translate(-50%,0)}
     </div>
     <div class="polaroid" style="left:420px;top:-6px;width:150px;height:130px;transform:rotate(5deg);--d:500" data-zoom="p6.webp" data-in><img data-img="p6.webp" alt="Spooning batter into cases"><span>picture</span></div>
   </div>
-  <aside class="notes" data-lead="AI">
-    <p><b>AI script.</b> Step six: fill the cups and bake. Use a <b>spoon</b> to put the batter into the cupcake cases. Fill each case about two-thirds full.</p>
-    <p>Click each case to fill it. Twelve cases! Now bake at one hundred eighty degrees for sixteen minutes. Look, the cupcakes are rising!</p>
-    <p class="ask">Ask: How hot is the oven? (180 degrees) How long do we bake? (16 minutes)</p>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Now, let's look at step six.</b></p>
+    <p>Group 6, please read Step 6 together. <span class="cue">(Click “Read together”: the words light up as students read.)</span></p>
+    <p>Great job! Now, let's check the details together.</p>
+    <p>First, spoon the batter into the cupcake cases. Then, bake at 180°C for 16 minutes.</p>
+    <p>You can write some notes on your coloured sheet.</p>
+    <p class="cue">Lab: click each case (or “Fill them all”), then Bake.</p>
   </aside>
 </section>
-
-<!-- 13. Recap -->
-<section class="slide" data-lead="AI" id="s-recap" data-mod="recap">
+<!-- 15. recap -->
+<section class="slide" data-lead="Teacher" id="s-recap" data-mod="recap">
   <div class="deco tw" style="left:1170px;top:24px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
-  <h2 class="bubble-title split" style="position:absolute;left:44px;top:30px;margin:0;font-size:64px">The whole recipe</h2>
-  <span class="hl" style="position:absolute;left:720px;top:48px;font-size:22px" data-in="right">Click a picture to zoom in</span>
+  <h2 class="bubble-title split" style="position:absolute;left:44px;top:30px;margin:0;font-size:58px">Is your recipe correct?</h2>
+  <span class="hl" style="position:absolute;left:860px;top:44px;font-size:22px" data-in="right">Click a picture to zoom in</span>
   <div class="recap" id="recap"></div>
-  <aside class="notes" data-lead="AI">
-    <p><b>Review.</b> Let's look at all six steps again. Read each step together.</p>
-    <p class="ask">Ask: Point to the picture where we sieve. Which step uses the oven?</p>
-    <p>These pictures are the ones students will match on the worksheet.</p>
-  </aside>
-</section>
-
-<!-- 14. Cut out and sort (Teacher) -->
-<section class="slide" data-lead="Teacher" id="s-sort" data-mod="sort">
-  <div class="deco tw" style="left:1180px;top:640px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
-  <div class="sort-wrap"><ul class="sortlist" id="sortlist"></ul>
-    <div class="ws-controls"><button class="btn go" data-act="check">Check the order</button><button class="btn" data-act="shuffle">Shuffle</button></div>
-    <div class="score" id="sortScore"></div>
-  </div>
-  <div class="sort-side">
-    <h2 class="bubble-title split">Cut out and sort the steps one by one.</h2>
-    <p class="hl" style="display:block;margin:22px auto 0;width:max-content;font-size:22px" data-in="up">Drag the strips into the right order</p>
-  </div>
-  <div class="girl bob" data-in="right" style="--d:400;left:930px;top:380px;width:260px"><img data-img="girl_bowl.webp" alt=""></div>
   <aside class="notes" data-lead="Teacher">
-    <p><b>Worksheet activity (Teacher).</b> Hand out the strips. Students cut out each step and put them in order.</p>
-    <p>On screen: drag the strips to practice together, then click “Check the order”. Green is right, red needs to move.</p>
+    <p><b>Is your recipe correct now?</b></p>
+    <p>Let's look at all six steps again. Check your coloured sheet: are your steps and pictures in the same order?</p>
+    <p class="cue">Click a picture to zoom in.</p>
   </aside>
 </section>
-
-<!-- 15. Paste and match (Teacher) -->
-<section class="slide" data-lead="Teacher" id="s-match" data-mod="match">
-  <div class="sheet" data-in="left">
-    <h3>Vanilla Cupcake Recipe</h3>
-    <table><colgroup><col style="width:34px"><col style="width:36%"><col style="width:32%"><col></colgroup>
-      <thead><tr><th></th><th>Steps</th><th>Pictures</th><th>Notes</th></tr></thead>
-      <tbody id="matchRows"></tbody></table>
-    <div class="ingbox"><b>Ingredients</b><div class="list" id="ingList"></div></div>
-  </div>
-  <div class="match-side">
-    <h2 class="bubble-title split">1. Paste the steps<br>2. Match the pictures to the steps</h2>
-    <div class="tray" id="tray"></div>
-    <div class="ws-controls"><button class="btn go" data-act="check">Check</button><button class="btn" data-act="reset">Start over</button></div>
-    <div class="score" id="matchScore"></div>
-  </div>
-  <div class="girl" data-in="up" style="--d:400;left:1110px;top:560px;width:150px"><img data-img="girl_thumbs.webp" alt=""></div>
-  <aside class="notes" data-lead="Teacher">
-    <p><b>Worksheet activity (Teacher).</b> 1. Paste the steps in the table. 2. Match each picture to its step.</p>
-    <p>On screen: drag a picture into the Pictures column, then click “Check”. Click a Notes cell to type a note (for example “30 s”, “2 min”, “180°C”).</p>
-  </aside>
-</section>
-
-<!-- 16. Thank you -->
+<!-- 16. thanks -->
 <section class="slide" data-lead="Teacher" id="s-thanks" data-mod="thanks">
   <div class="deco tw" style="left:1120px;top:-10px;width:120px;height:120px"><svg><use href="#i-star"/></svg></div>
   <div class="deco tw" style="left:1210px;top:90px;width:80px;height:80px;animation-delay:.8s"><svg><use href="#i-star"/></svg></div>
   <div class="deco tw" style="left:-20px;top:600px;width:130px;height:130px;animation-delay:.3s"><svg><use href="#i-star"/></svg></div>
   <div class="deco tw" style="left:100px;top:520px;width:80px;height:80px;animation-delay:1.1s"><svg><use href="#i-star"/></svg></div>
-  <div class="deco" style="left:120px;top:60px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:470px;top:70px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:930px;top:120px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:60px;top:300px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
-  <div class="deco" style="left:1150px;top:610px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:120px;top:60px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:470px;top:70px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:930px;top:120px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:60px;top:300px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco sway" style="left:1150px;top:610px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
   <div class="deco tw" style="left:140px;top:250px;width:44px;height:44px"><svg><use href="#i-spark"/></svg></div>
   <div class="deco tw" style="left:1100px;top:330px;width:44px;height:44px;animation-delay:.5s"><svg><use href="#i-spark"/></svg></div>
-  <div class="thanks-card card" data-in><h2 class="bubble-title split">Thank you</h2><p>Feel free to ask us if you have any questions.</p></div>
-  <div class="pill" data-in="up" style="--d:600">Happy baking!</div>
+  <div class="thanks-card card" data-in><h2 class="bubble-title split">Thank you</h2><p>You all did a great job. Next week, we will bake together!</p></div>
+  <div class="pill" data-in="up" style="--d:600">See you next week!</div>
+  <button class="btn go bighand" data-act="hand" data-in="up" style="--d:800">Give yourselves a big hand!</button>
   <aside class="notes" data-lead="Teacher">
-    <p><b>Closing (Teacher).</b> Great job, bakers! Thank you. Any questions?</p>
+    <p><b>Great job, everyone.</b></p>
+    <p>Today you learned the ingredients and the steps for making vanilla cupcakes.</p>
+    <p>You all did a great job. Give yourselves a big hand! <span class="cue">(Click “Big hand!”)</span></p>
+    <p>Next week, we will bake vanilla cupcakes together.</p>
+    <p>Thank you, everyone. See you next week.</p>
   </aside>
 </section>
 
@@ -728,7 +869,13 @@ body.drawing #drawbar{transform:translate(-50%,0)}
 
 <div id="progress"></div>
 <div id="counter"></div>
-<div id="help"><span><kbd>←</kbd> <kbd>→</kbd> or mouse wheel: change slide</span><span>Middle click: draw mode</span><span><kbd>F1</kbd> notes</span><span><kbd>F</kbd> full screen</span></div>
+<nav id="navbtns" aria-label="Slide controls">
+  <button id="nbDraw" aria-pressed="false" aria-label="Draw mode" title="Draw mode (middle click)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg></button>
+  <button id="nbNotes" aria-pressed="false" aria-label="Speaker notes" title="Notes (F1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></button>
+  <button id="nbPrev" class="arrow" aria-label="Previous slide" title="Previous (←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button id="nbNext" class="arrow" aria-label="Next slide" title="Next (→)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+</nav>
+<div id="help"><span><kbd>←</kbd> <kbd>→</kbd> or mouse wheel: change slide</span><span>Middle click: draw mode</span><span>Buttons at bottom right on phones</span><span><kbd>F1</kbd> notes</span><span><kbd>F</kbd> full screen</span></div>
 <div id="drawbar" role="toolbar" aria-label="Drawing tools">
   <button class="sw" style="background:#E0473F" data-c="#E0473F" aria-pressed="true" aria-label="Red pen"></button>
   <button class="sw" style="background:#5B30E6" data-c="#5B30E6" aria-pressed="false" aria-label="Purple pen"></button>
@@ -738,6 +885,7 @@ body.drawing #drawbar{transform:translate(-50%,0)}
   <button class="sz" data-w="4" aria-pressed="false" aria-label="Thin"><i style="width:5px;height:5px"></i></button>
   <button class="sz" data-w="8" aria-pressed="true" aria-label="Medium"><i style="width:9px;height:9px"></i></button>
   <button class="sz" data-w="14" aria-pressed="false" aria-label="Thick"><i style="width:14px;height:14px"></i></button>
+  <button class="tb" data-act="eraser" aria-pressed="false">Eraser</button>
   <span class="hint">Left: draw · Right: erase</span>
   <button class="tb" data-act="clear">Clear page</button><button class="tb" data-act="exit">Done</button>
 </div>
@@ -791,6 +939,75 @@ function burst(x, y, n = 18, colors = ['#E0473F', '#F7E35C', '#5B30E6', '#6CB98A
 }
 function stagePoint(el) { const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect(); return [(r.left + r.width / 2 - s.left) / scale, (r.top + r.height / 2 - s.top) / scale]; }
 function toStage(e) { const s = stage.getBoundingClientRect(); return [(e.clientX - s.left) / scale, (e.clientY - s.top) / scale]; }
+
+/* ---------- full-slide overlays ---------- */
+function overlay(html, ms) {
+  const o = document.createElement('div'); o.className = 'overlay'; o.innerHTML = html; stage.appendChild(o);
+  const close = () => { o.classList.add('out'); setTimeout(() => o.remove(), 380); };
+  if (ms) setTimeout(close, ms);
+  return { el: o, close };
+}
+function banner(text, sub = '', ms = 2200) { return overlay(`<div class="msg">${text}${sub ? `<span class="sub">${sub}</span>` : ''}</div>`, ms); }
+/* big ring countdown (real seconds), then optional banner */
+function bigCount(sec, done) {
+  const C = 2 * Math.PI * 110;
+  const o = overlay(`<div class="ring"><svg viewBox="0 0 260 260"><circle cx="130" cy="130" r="110" fill="#fff" stroke="#F6E2D2" stroke-width="18"/><circle class="arc" cx="130" cy="130" r="110" fill="none" stroke="#E0473F" stroke-width="18" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg><b>${sec}</b></div>`);
+  const arc = $('.arc', o.el), num = $('b', o.el), t0 = performance.now();
+  let shown = sec, raf;
+  const loop = now => {
+    const el = (now - t0) / 1000, left = Math.max(0, sec - el);
+    arc.setAttribute('stroke-dashoffset', C * (1 - left / sec));
+    const n = Math.ceil(left);
+    if (n !== shown && n > 0) { shown = n; num.textContent = n; num.classList.remove('tick'); void num.offsetWidth; num.classList.add('tick'); }
+    if (left > 0) raf = requestAnimationFrame(loop); else { o.close(); done && done(); }
+  };
+  raf = requestAnimationFrame(loop);
+  return { cancel() { cancelAnimationFrame(raf); o.close(); } };
+}
+/* confetti rain across the whole slide */
+function celebrate(n = 70) {
+  const colors = ['#E0473F', '#F7E35C', '#5B30E6', '#6CB98A', '#F2A3A6', '#F2B184', '#7FB3E0'];
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('div'); d.className = 'burst';
+    const w = 8 + Math.random() * 10;
+    Object.assign(d.style, { left: Math.random() * 1280 + 'px', top: '-20px', width: w + 'px', height: w * .5 + 'px', background: colors[i % colors.length], borderRadius: '2px' });
+    stage.appendChild(d);
+    const a = d.animate([{ transform: 'translate(0,0) rotate(0)' }, { transform: `translate(${(Math.random() - .5) * 200}px,760px) rotate(${360 + Math.random() * 720}deg)` }],
+      { duration: 1800 + Math.random() * 1600, delay: Math.random() * 700, easing: 'cubic-bezier(.3,.2,.6,1)' });
+    a.onfinish = () => d.remove();
+  }
+}
+/* read-along: wrap words in spans, then light them up one by one */
+function wrapWords(el) {
+  if (el.dataset.wrapped) return; el.dataset.wrapped = '1';
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n => {
+    if (!n.nodeValue.trim()) return;
+    const frag = document.createDocumentFragment();
+    n.nodeValue.split(/(\s+)/).forEach(part => {
+      if (!part) return;
+      if (/^\s+$/.test(part)) frag.appendChild(document.createTextNode(part));
+      else { const w = document.createElement('span'); w.className = 'w'; w.textContent = part; frag.appendChild(w); }
+    });
+    n.parentNode.replaceChild(frag, n);
+  });
+}
+const Reader = {
+  timers: [],
+  stop() { this.timers.forEach(clearTimeout); this.timers = []; $$('.w.lit').forEach(w => w.classList.remove('lit')); $$('.ing.reading').forEach(c => c.classList.remove('reading')); },
+  words(el, ms = 520) {
+    this.stop(); wrapWords(el);
+    const ws = $$('.w', el);
+    ws.forEach((w, i) => this.timers.push(setTimeout(() => w.classList.add('lit'), i * ms)));
+    this.timers.push(setTimeout(() => ws.forEach(w => w.classList.remove('lit')), ws.length * ms + 1500));
+  },
+  items(list, ms = 1700) {
+    this.stop();
+    list.forEach((el, i) => this.timers.push(setTimeout(() => { list.forEach(x => x.classList.remove('reading')); el.classList.add('reading'); }, i * ms)));
+    this.timers.push(setTimeout(() => list.forEach(x => x.classList.remove('reading')), list.length * ms));
+  }
+};
 
 /* ---------- timer speed (shared) ---------- */
 const Speed = {
@@ -903,11 +1120,19 @@ const Modules = {};
 Modules.choose = {
   init(root) {
     this.root = root; this.votes = { 1: 0, 2: 0, 3: 0 };
+    const fill = (el, txt) => { el.textContent = txt; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); };
     $$('.pick', root).forEach(b => b.addEventListener('click', () => {
-      const k = b.dataset.k; this.votes[k]++; this.render();
+      const k = b.dataset.k; this.votes[k]++; this.render(); fill($('#fNum'), k);
       b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump');
       const [x, y] = stagePoint(b); burst(x, y - 60, 14, ['#F2A3A6', '#E0473F', '#F7E35C']);
     }));
+    $$('.chip', root).forEach(c => c.addEventListener('click', () => {
+      $$('.chip', root).forEach(x => x.setAttribute('aria-pressed', String(x === c))); fill($('#fWord'), c.dataset.w);
+    }));
+    $('[data-act="think"]', root).addEventListener('click', () => {
+      this.count && this.count.cancel();
+      this.count = bigCount(5, () => banner('Now, talk with your partner!', 'Tell your partner which cupcake you like and why.', 3200));
+    });
     $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
   },
   render() {
@@ -918,24 +1143,39 @@ Modules.choose = {
       b.classList.toggle('top', max > 0 && v === max);
     });
   },
-  reset() { this.votes = { 1: 0, 2: 0, 3: 0 }; this.render(); }
+  reset() {
+    this.votes = { 1: 0, 2: 0, 3: 0 }; this.render();
+    $('#fNum').textContent = '?'; $('#fWord').textContent = '?'; $$('.chip', this.root).forEach(x => x.setAttribute('aria-pressed', 'false'));
+  },
+  leave() { this.count && this.count.cancel(); }
 };
 
-/* ---- Video + Q&A ---- */
+/* ---- Watch & check (video) ---- */
 Modules.video = {
   init(root) {
     const input = $('#vidFile'), vid = $('#vid'), empty = $('#vidEmpty');
-    let url = null;
+    let url = null; this.vid = vid; this.rate = 2; this.root = root;
     input.addEventListener('change', () => {
       const f = input.files && input.files[0]; if (!f) return;
       if (!f.type.startsWith('video/')) { toast('Please choose a video file.'); return; }
       if (url) URL.revokeObjectURL(url);
       url = URL.createObjectURL(f); vid.src = url; vid.hidden = false; empty.hidden = true;
     });
-    vid.addEventListener('error', () => { toast('This video format cannot play here. Try an MP4 file.'); vid.hidden = true; empty.hidden = false; });
-    this.vid = vid;
-    $$('.qcard', root).forEach(c => c.addEventListener('click', () => c.classList.toggle('open')));
+    vid.addEventListener('loadedmetadata', () => { vid.playbackRate = this.rate; });
+    vid.addEventListener('error', () => { toast('This video cannot play here. Try an MP4 file.'); vid.hidden = true; empty.hidden = false; });
+    $('.vid-speed .speed', root).addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      this.rate = Number(b.dataset.r); safe(() => { vid.playbackRate = this.rate; });
+      $$('.vid-speed .speed button', root).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    });
+    $$('.watch li', root).forEach(li => $('button', li).addEventListener('click', () => li.classList.toggle('done')));
+    $('[data-act="yes"]', root).addEventListener('click', () => { celebrate(); banner('Great job!', 'Your recipe is correct.', 2200); });
+    $('[data-act="no"]', root).addEventListener('click', () => {
+      const c = $('.ask-card', root); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+      toast('Change the order and check again.');
+    });
   },
+  reset() { $$('.watch li', this.root).forEach(li => li.classList.remove('done')); },
   leave() { safe(() => this.vid.pause()); }
 };
 
@@ -991,6 +1231,7 @@ Modules.ingredients = {
       $$('.seg button', root).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       this.render(true);
     }));
+    $('[data-act="read"]', root).addEventListener('click', () => Reader.items($$('.ing', root)));
     this.render(false); this.count();
   },
   render(anim) {
@@ -1591,9 +1832,31 @@ Modules.match = {
     dragger({ source: root, onDrop, onMove });
     $('[data-act="check"]', root).addEventListener('click', () => this.check());
     $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    $('[data-act="timer"]', root).addEventListener('click', () => this.toggleTimer());
     this.reset();
   },
+  /* 3-minute class timer, always real time */
+  toggleTimer() {
+    const btn = $('[data-act="timer"]', this.root), clock = $('#clock3');
+    if (this.timer) { this.stopTimer(); return; }
+    banner('Ready? Let\'s start!', 'You have three minutes.', 1600);
+    const total = 180, t0 = performance.now() + 1600;
+    btn.textContent = 'Stop timer';
+    const loop = now => {
+      const left = Math.max(0, total - Math.max(0, now - t0) / 1000);
+      clock.textContent = mmss(left); clock.classList.toggle('hurry', left <= 10 && left > 0);
+      if (left > 0) this.timer = requestAnimationFrame(loop);
+      else { this.stopTimer(true); banner('Time\'s up!', 'Let\'s check your recipe.', 2600); celebrate(40); }
+    };
+    this.timer = requestAnimationFrame(loop);
+  },
+  stopTimer(finished) {
+    cancelAnimationFrame(this.timer); this.timer = null;
+    const clock = $('#clock3'); clock.classList.remove('hurry'); if (!finished) clock.textContent = '3:00'; else clock.textContent = '0:00';
+    $('[data-act="timer"]', this.root).textContent = 'Start · 3 min';
+  },
   reset() {
+    this.stopTimer();
     $$('.slot', this.root).forEach(s => { s.className = 'slot'; s.textContent = 'drop picture'; });
     $('#tray').innerHTML = shuffle(STEPS.map((_, i) => i)).map(i => `<div class="pic" data-drag data-i="${i}">${imgTags(STEPS[i].pics)}</div>`).join('');
     $('#matchScore').textContent = '';
@@ -1607,6 +1870,13 @@ Modules.match = {
     $('#matchScore').textContent = filled === 0 ? 'Drag a picture into the table first.' : ok === STEPS.length ? 'Perfect match!' : `${ok} of ${STEPS.length} correct`;
     if (ok === STEPS.length) { const [x, y] = stagePoint($('.sheet', this.root)); burst(x, y, 40); }
   }
+};
+
+/* ---- Thank you ---- */
+Modules.thanks = {
+  init(root) { $('[data-act="hand"]', root).addEventListener('click', () => { celebrate(90); banner('Give yourselves a big hand!', 'See you next week.', 2400); }); },
+  enter() { clearTimeout(this.t); this.t = setTimeout(() => celebrate(50), 700); },
+  leave() { clearTimeout(this.t); }
 };
 
 /* =========================================================
@@ -1632,7 +1902,8 @@ const Draw = {
     const c = this.canvas;
     c.addEventListener('pointerdown', e => {
       if (!this.on) return;
-      if (e.button === 0) { const [x, y] = toStage(e); this.cur = { c: this.color, w: this.width, p: [[x, y]] }; this.strokes().push(this.cur); safe(() => c.setPointerCapture(e.pointerId)); }
+      if (e.button === 0 && this.eraserTool) { this.erasing = true; this.eraseAt(e); safe(() => c.setPointerCapture(e.pointerId)); }
+      else if (e.button === 0) { const [x, y] = toStage(e); this.cur = { c: this.color, w: this.width, p: [[x, y]] }; this.strokes().push(this.cur); safe(() => c.setPointerCapture(e.pointerId)); }
       else if (e.button === 2) { this.erasing = true; document.body.classList.add('erasing'); this.eraseAt(e); safe(() => c.setPointerCapture(e.pointerId)); }
     });
     c.addEventListener('pointermove', e => {
@@ -1649,6 +1920,8 @@ const Draw = {
       const b = e.target.closest('button'); if (!b) return;
       if (b.classList.contains('sw')) { this.color = b.dataset.c; if (b.dataset.w) this.width = Number(b.dataset.w); $$('#drawbar .sw').forEach(x => x.setAttribute('aria-pressed', String(x === b))); this.syncSize(); }
       if (b.classList.contains('sz')) { this.width = Number(b.dataset.w); this.syncSize(); if (this.color.startsWith('rgba')) { this.color = '#E0473F'; $$('#drawbar .sw').forEach((x, i) => x.setAttribute('aria-pressed', String(i === 0))); } }
+      if (b.dataset.act === 'eraser') { this.eraserTool = !this.eraserTool; b.setAttribute('aria-pressed', String(this.eraserTool)); }
+      if (b.classList.contains('sw') || b.classList.contains('sz')) { this.eraserTool = false; $('#drawbar [data-act="eraser"]').setAttribute('aria-pressed', 'false'); }
       if (b.dataset.act === 'clear') this.clearPage();
       if (b.dataset.act === 'exit') this.toggle(false);
     });
@@ -1659,8 +1932,9 @@ const Draw = {
   toggle(force) {
     this.on = typeof force === 'boolean' ? force : !this.on;
     document.body.classList.toggle('drawing', this.on);
+    $('#nbDraw').setAttribute('aria-pressed', String(this.on));
     if (!this.on) { this.cur = null; this.erasing = false; this.eraser.style.display = 'none'; }
-    toast(this.on ? 'Draw mode: left click draws, right click erases' : 'Draw mode off');
+    toast(this.on ? 'Draw mode on: draw with left click or finger. Right click or Eraser removes lines.' : 'Draw mode off');
   },
   eraseAt(e) {
     const [x, y] = toStage(e), R = 18; this.eraser.style.display = 'block';
@@ -1706,6 +1980,14 @@ const Deck = {
         h.innerHTML = h.innerHTML.split(/(<br>)/).map(part => part === '<br>' ? part : part.split(' ').map(w => `<span style="white-space:nowrap">${[...w].map(ch => `<span class="ch" style="--i:${i++}">${ch}</span>`).join('')}</span>`).join(' ')).join('');
       });
       const m = Modules[sl.dataset.mod]; if (m && m.init) safe(() => m.init(sl));
+      // step slides: "Group N · Read together" under the instruction
+      const instr = $('.instr', sl);
+      if (sl.dataset.group && instr) {
+        const row = document.createElement('div'); row.className = 'read-row';
+        row.innerHTML = `<span class="grp">Group ${sl.dataset.group}</span><button class="btn small go">Read together</button>`;
+        instr.appendChild(row);
+        $('button', row).addEventListener('click', () => Reader.words($('p', instr)));
+      }
     });
     Speed.mount();
     const h = parseInt((location.hash || '').replace(/\D/g, ''), 10);
@@ -1716,6 +1998,7 @@ const Deck = {
     if (n === this.idx && !first) return;
     const prev = this.slides[this.idx], next = this.slides[n];
     if (!first) { const m = Modules[prev.dataset.mod]; m && m.leave && safe(() => m.leave()); }
+    Reader.stop(); $$('.overlay', stage).forEach(o => o.remove());
     this.slides.forEach((s, i) => { s.classList.toggle('is-active', i === n); s.classList.toggle('is-before', i < n); s.classList.remove('play'); });
     void next.offsetWidth; next.classList.add('play');
     this.idx = n;
@@ -1735,7 +2018,7 @@ const Deck = {
 };
 const Notes = {
   el: $('#notes'), on: false,
-  toggle() { this.on = !this.on; this.el.classList.toggle('show', this.on); this.render(); },
+  toggle() { this.on = !this.on; this.el.classList.toggle('show', this.on); $('#nbNotes').setAttribute('aria-pressed', String(this.on)); this.render(); },
   render() {
     const sl = Deck.slides[Deck.idx], n = $('.notes', sl);
     const lead = (n && n.dataset.lead) || sl.dataset.lead || '';
@@ -1779,6 +2062,13 @@ window.addEventListener('resize', () => Deck.fit());
 let helpT;
 function showHelp() { const h = $('#help'); h.classList.remove('hide'); clearTimeout(helpT); helpT = setTimeout(() => h.classList.add('hide'), 5000); }
 window.addEventListener('keydown', e => { if (e.key === '?') showHelp(); });
+
+/* on-screen buttons (phones / tablets) */
+$('#nbPrev').addEventListener('click', () => Deck.prev());
+$('#nbNext').addEventListener('click', () => Deck.next());
+$('#nbNotes').addEventListener('click', () => Notes.toggle());
+$('#nbDraw').addEventListener('click', () => Draw.toggle());
+$$('#navbtns button').forEach(b => b.addEventListener('mousedown', e => { if (e.button === 0) e.preventDefault(); }));
 
 Deck.fit(); Draw.init(); Deck.init(); showHelp();
 })();
