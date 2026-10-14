@@ -1,0 +1,1785 @@
+<title>Vanilla Cupcakes Lesson</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Layout: fixed 1280x720 stage scaled to fit; peach grid paper world, stickers, white rounded cards. */
+:root{
+  --paper:#FCE7D6; --grid:#FFF6EE; --ink:#3B2A28; --brown:#6A3C3A;
+  --rose:#EBA3A3; --apricot:#F2B184; --tag:#EAB07F; --card:#FFFFFF;
+  --lemon:#F7E35C; --verb:#E0473F; --noun:#5B30E6; --mint:#6CB98A; --sky:#7FB3E0;
+  --display:"Fredoka","Baloo 2","Arial Rounded MT Bold",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0;background:#E9CDB8;color:var(--ink);font-family:var(--body);overflow:hidden;
+  padding-left:max(0px,env(safe-area-inset-left,0px));padding-right:max(0px,env(safe-area-inset-right,0px));
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#viewport{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;
+  box-shadow:0 20px 60px rgba(90,40,30,.25);overflow:hidden;border-radius:6px;background:var(--paper);transform-origin:center center}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;overflow:hidden;visibility:hidden;opacity:0;
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 3px,transparent 3px),linear-gradient(90deg,var(--grid) 3px,transparent 3px);
+  background-size:48px 48px;background-position:-2px -2px;
+  transition:opacity .45s ease,transform .45s ease,visibility 0s linear .45s;transform:translateX(30px)}
+.slide.is-active{visibility:visible;opacity:1;transform:none;transition:opacity .45s ease,transform .45s ease}
+.slide.is-before{transform:translateX(-30px)}
+.slide .notes{display:none}
+
+/* entrance animations, replayed on every visit */
+.slide [data-in]{opacity:1}
+.slide.play [data-in]{animation:var(--anim,pop) .6s cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(var(--d,0) * 1ms)}
+.slide.play [data-in="up"]{--anim:up}
+.slide.play [data-in="left"]{--anim:fromLeft}
+.slide.play [data-in="right"]{--anim:fromRight}
+.slide.play [data-in="drop"]{--anim:drop}
+/* entrance keyframes use the individual translate/scale properties so they compose with each element's own transform */
+@keyframes pop{from{opacity:0;scale:.6}to{opacity:1;scale:1}}
+@keyframes up{from{opacity:0;translate:0 40px}to{opacity:1;translate:0 0}}
+@keyframes fromLeft{from{opacity:0;translate:-60px 0}to{opacity:1;translate:0 0}}
+@keyframes fromRight{from{opacity:0;translate:60px 0}to{opacity:1;translate:0 0}}
+@keyframes drop{0%{opacity:0;translate:0 -80px}60%{opacity:1;translate:0 8px}100%{translate:0 0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.7) rotate(20deg);opacity:.7}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(10px)}60%{transform:translateX(-8px)}80%{transform:translateX(6px)}}
+
+/* decorations */
+.deco{position:absolute;pointer-events:none}
+.deco svg{width:100%;height:100%;overflow:visible}
+.tw{animation:twinkle 2.6s ease-in-out infinite;transform-origin:center}
+.girl.bob img{animation:bob 3s ease-in-out infinite}
+.girl{position:absolute;pointer-events:none;filter:drop-shadow(0 6px 0 rgba(255,255,255,.9)) drop-shadow(0 8px 10px rgba(120,60,40,.15))}
+.girl img{width:100%;display:block}
+
+/* type */
+.bubble-title{font-family:var(--display);font-weight:700;color:var(--rose);letter-spacing:.04em;line-height:1.08;
+  -webkit-text-stroke:5px var(--brown);paint-order:stroke fill;text-transform:uppercase;text-wrap:balance}
+.bubble-title .ch{display:inline-block}
+.slide.play .bubble-title .ch{animation:pop .5s cubic-bezier(.2,.9,.3,1.5) both;animation-delay:calc(var(--i) * 35ms + 200ms)}
+.step-word{font-family:var(--display);font-weight:700;color:var(--apricot);-webkit-text-stroke:4px var(--brown);paint-order:stroke fill;letter-spacing:.05em}
+.v{color:var(--verb)} .n{color:var(--noun)}
+.tag{display:inline-block;background:var(--tag);color:#4E302C;font-family:var(--display);font-weight:600;font-size:34px;
+  padding:6px 34px;border-radius:12px;box-shadow:0 4px 0 rgba(255,255,255,.8)}
+.hl{display:inline-block;background:var(--lemon);border-radius:12px;padding:6px 20px;font-weight:700;font-size:30px;color:#2a1f1d}
+.card{background:var(--card);border-radius:24px;box-shadow:0 6px 0 rgba(234,176,127,.35)}
+
+/* buttons */
+.btn{font-family:var(--body);font-weight:800;font-size:19px;color:#4E302C;background:#FFF3E6;border:3px solid #E7B48C;border-radius:999px;
+  padding:9px 18px;cursor:pointer;transition:transform .15s,background .15s,opacity .2s;white-space:nowrap}
+.btn:hover:not(:disabled){transform:translateY(-2px);background:#FFE6CF}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:focus-visible{outline:3px solid var(--noun);outline-offset:2px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn.go{background:var(--lemon);border-color:#D9B92C}
+.btn.go:hover:not(:disabled){background:#FBEA7E}
+.btn.done{background:#DFF3E5;border-color:var(--mint);color:#2E6B44}
+.btn.small{font-size:15px;padding:5px 12px;border-width:2px}
+.next-hint{animation:bob 1.2s ease-in-out infinite}
+
+/* ---------- step slide layout ---------- */
+.step-text{position:absolute;left:44px;top:24px;width:600px;height:672px}
+.step-lab{position:absolute;left:668px;top:24px;width:572px;height:672px}
+.flip .step-text{left:636px}
+.flip .step-lab{left:44px}
+.step-head{position:absolute;left:0;top:0;width:600px;height:220px}
+.step-head .girl{left:6px;top:0;width:210px}
+.flip .step-head .girl{left:auto;right:0}
+.step-badge{position:absolute;left:250px;top:70px;background:#fff;border-radius:22px;padding:4px 30px;font-size:74px;white-space:nowrap}
+.step-badge.long{font-size:62px;top:78px}
+.flip .step-badge{left:20px}
+.instr{position:absolute;left:0;top:224px;width:600px;padding:22px 26px 24px;box-sizing:border-box}
+.instr .hl{margin-bottom:12px}
+.instr p{margin:0;font-size:33px;font-weight:900;line-height:1.3;color:#141010;text-wrap:balance}
+.tasks{position:absolute;left:0;bottom:0;width:600px;margin:0;padding:16px 22px;box-sizing:border-box;list-style:none;
+  background:rgba(255,255,255,.72);border:3px dashed #EBB98F;border-radius:22px;display:flex;flex-wrap:wrap;gap:8px 10px}
+.tasks .cap{width:100%;font-family:var(--display);font-weight:600;font-size:19px;color:#8B5A48;letter-spacing:.06em;text-transform:uppercase}
+.tasks li{font-weight:800;font-size:18px;color:#7a5a50;background:#fff;border:2px solid #F0D2BC;border-radius:999px;padding:5px 14px 5px 8px;display:flex;align-items:center;gap:7px;transition:all .3s}
+.tasks li::before{content:"";width:20px;height:20px;border-radius:50%;border:2px solid #E2B79A;background:#fff;flex:none;box-sizing:border-box;transition:all .3s}
+.tasks li.ok{color:#2E6B44;border-color:#9FD2B1;background:#EFFAF2}
+.tasks li.ok::before{background:var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3L15 6.5' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% no-repeat;border-color:var(--mint)}
+.tasks li.now{border-color:#E9B04F;background:#FFF8DA;color:#5a3d1a;animation:bob 1.6s ease-in-out infinite}
+
+.lab-tag{position:absolute;left:50%;top:0;transform:translateX(-50%);z-index:3}
+.lab{position:absolute;left:0;top:70px;width:572px;height:602px;box-sizing:border-box;padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.lab-bar{display:flex;align-items:center;gap:8px;min-height:34px;padding-right:150px}
+.flip .lab-bar{padding-right:0;padding-left:150px;justify-content:flex-end}
+.lab-bar .meter{flex:none;width:150px}
+.scene{position:relative;flex:1;min-height:0;border-radius:18px;background:linear-gradient(#FFF9F3,#FDEBDC);overflow:hidden}
+.scene svg{width:100%;height:100%;display:block}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.say{position:absolute;left:50%;top:14px;transform:translateX(-50%) scale(.6);opacity:0;background:#fff;border:3px solid var(--brown);border-radius:18px;
+  padding:6px 16px;font-weight:900;font-size:21px;color:var(--brown);white-space:nowrap;transition:all .3s cubic-bezier(.2,.9,.3,1.4);pointer-events:none;z-index:4}
+.say.show{opacity:1;transform:translateX(-50%) scale(1)}
+.say.warn{border-color:var(--verb);color:var(--verb)}
+.say.good{border-color:var(--mint);color:#2E6B44}
+.polaroid{position:absolute;background:#fff;padding:7px 7px 24px;border-radius:6px;box-shadow:0 8px 18px rgba(90,40,30,.25);cursor:zoom-in;z-index:5;transition:transform .2s}
+.polaroid img{display:block;width:100%;height:100%;object-fit:cover;border-radius:3px}
+.polaroid span{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:700 13px var(--body);color:#8B5A48}
+.polaroid:hover{transform:rotate(0) scale(1.06)!important}
+.timer{font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums}
+.speed{display:inline-flex;border:2px solid #E7B48C;border-radius:999px;overflow:hidden}
+.speed button{font:800 14px var(--body);border:0;background:#fff;color:#8B5A48;padding:5px 11px;cursor:pointer}
+.speed button[aria-pressed="true"]{background:#E7B48C;color:#fff}
+.meter{height:16px;border-radius:999px;background:#F6E2D2;overflow:hidden;flex:1}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#F7C66A,#F29A5E);border-radius:inherit;transition:width .2s}
+
+/* ---------- specific slides ---------- */
+/* title */
+.title-card{position:absolute;left:360px;top:190px;width:830px;height:390px;display:grid;place-items:center;border-radius:40px}
+.title-card .bubble-title{font-size:92px;text-align:center;margin:0;padding:0 40px}
+/* choose */
+.choose-row{position:absolute;inset:0}
+.pick{position:absolute;width:300px;height:300px;border:0;padding:0;background:none;cursor:pointer;border-radius:50%;transition:transform .25s}
+.pick img{width:100%;height:100%;border-radius:50%;display:block;box-shadow:0 0 0 8px #fff,0 14px 28px rgba(90,40,30,.25)}
+.pick:hover{transform:scale(1.04) rotate(-2deg)}
+.pick:focus-visible{outline:4px solid var(--noun);outline-offset:10px}
+.pick .num{position:absolute;width:78px;height:78px;border-radius:50%;background:#5B3632;color:#fff;font:600 44px var(--display);display:grid;place-items:center;box-shadow:0 0 0 5px #fff}
+.pick .votes{position:absolute;right:-6px;top:-6px;min-width:64px;height:64px;padding:0 10px;box-sizing:border-box;border-radius:999px;background:var(--lemon);border:4px solid #fff;
+  font:700 30px var(--display);color:#4E302C;display:grid;place-items:center;transform:scale(0);transition:transform .3s cubic-bezier(.2,.9,.3,1.6)}
+.pick .votes.on{transform:scale(1)}
+.pick.top img{box-shadow:0 0 0 8px var(--lemon),0 14px 28px rgba(90,40,30,.25)}
+.pick .crown{position:absolute;left:50%;top:-58px;transform:translateX(-50%) scale(0);font:700 22px var(--display);color:#fff;background:var(--verb);padding:4px 14px;border-radius:999px;transition:transform .3s cubic-bezier(.2,.9,.3,1.6);white-space:nowrap}
+.pick.top .crown{transform:translateX(-50%) scale(1)}
+.pick.bump{animation:wiggle .4s}
+/* video + q&a */
+.video-box{position:absolute;left:56px;top:130px;width:700px;height:394px;border-radius:24px;background:#3B2A28;overflow:hidden;box-shadow:0 0 0 8px #fff,0 14px 30px rgba(90,40,30,.25)}
+.video-box video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.video-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#FCE7D6;font:700 26px var(--body)}
+.video-empty .play{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center;margin:0 auto 14px}
+.qa{position:absolute;left:800px;top:130px;width:420px;display:flex;flex-direction:column;gap:14px}
+.qcard{position:relative;height:118px;perspective:900px;cursor:pointer;border:0;padding:0;background:none;text-align:left;font:inherit}
+.qcard .in{position:absolute;inset:0;transition:transform .6s cubic-bezier(.3,.9,.3,1.1);transform-style:preserve-3d}
+.qcard.open .in{transform:rotateX(180deg)}
+.qcard .f,.qcard .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:14px 18px;box-sizing:border-box;display:flex;gap:14px;align-items:center}
+.qcard .f{background:#fff;box-shadow:0 5px 0 rgba(234,176,127,.45)}
+.qcard .b{background:var(--lemon);transform:rotateX(180deg);font-weight:900;font-size:25px;color:#2a1f1d}
+.qcard .q{font-weight:900;font-size:23px;line-height:1.2;color:#2a1f1d}
+.qcard .qn{flex:none;width:48px;height:48px;border-radius:50%;background:var(--rose);color:#fff;font:700 24px var(--display);display:grid;place-items:center;-webkit-text-stroke:0}
+.qcard:focus-visible{outline:3px solid var(--noun);outline-offset:4px;border-radius:20px}
+/* ingredients */
+.ingr-head{position:absolute;left:48px;top:30px;display:flex;align-items:center;gap:24px}
+.ingr-head .label{background:#fff;border-radius:22px;padding:4px 30px;font-size:62px}
+.serve{display:flex;align-items:center;gap:10px;font:600 28px var(--display);color:#4E302C;background:#fff;border-radius:999px;padding:8px 10px 8px 22px}
+.serve .seg{display:flex;background:#FBE2CF;border-radius:999px;padding:4px}
+.serve .seg button{border:0;background:none;font:600 26px var(--display);color:#8B5A48;padding:4px 18px;border-radius:999px;cursor:pointer}
+.serve .seg button[aria-pressed="true"]{background:var(--apricot);color:#fff}
+.ready-count{font:600 24px var(--display);color:#2E6B44;background:#EFFAF2;border:3px solid #9FD2B1;border-radius:999px;padding:6px 18px}
+.ingr-grid{position:absolute;left:48px;top:142px;width:1000px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ing{position:relative;height:160px;border:0;border-radius:22px;background:#fff;box-shadow:0 5px 0 rgba(234,176,127,.45);display:flex;align-items:center;gap:14px;padding:12px 18px;box-sizing:border-box;cursor:pointer;text-align:left;font:inherit;transition:transform .2s,background .3s}
+.ing:hover{transform:translateY(-3px)}
+.ing:focus-visible{outline:3px solid var(--noun);outline-offset:3px}
+.ing svg.icon{width:92px;height:92px;flex:none}
+.ing .nm{font-weight:900;font-size:25px;line-height:1.1;color:#2a1f1d}
+.ing .amt{font:600 34px var(--display);color:var(--verb);font-variant-numeric:tabular-nums;margin-top:4px}
+.ing .use{position:absolute;right:12px;top:10px;font:800 13px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:#FBE2CF;color:#8B5A48}
+.ing .tick{position:absolute;right:12px;bottom:12px;width:36px;height:36px;border-radius:50%;border:3px solid #EBD3C2;box-sizing:border-box;transition:all .3s cubic-bezier(.2,.9,.3,1.6)}
+.ing.ok{background:#F2FBF5}
+.ing.ok .tick{background:var(--mint) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 10.5l3.2 3L15 6.5' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/80% no-repeat;border-color:var(--mint);transform:scale(1.15)}
+.ing.flash{animation:wiggle .4s}
+/* verbs */
+.verbs{position:absolute;left:60px;top:150px;width:1160px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.vcard{height:240px;perspective:1000px;border:0;padding:0;background:none;cursor:pointer;font:inherit}
+.vcard .in{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.3,.9,.3,1.1);transform-style:preserve-3d}
+.vcard.open .in{transform:rotateY(180deg)}
+.vcard .f,.vcard .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;padding:16px}
+.vcard .f{background:#fff;box-shadow:0 6px 0 rgba(234,176,127,.45)}
+.vcard .b{background:#FFF8DA;transform:rotateY(180deg);box-shadow:0 6px 0 rgba(217,185,44,.4)}
+.vcard .word{font:700 58px var(--display);color:var(--verb);letter-spacing:.03em}
+.vcard .ico{width:110px;height:100px}
+.vcard .snt{font-weight:900;font-size:30px;line-height:1.25;text-align:center;color:#2a1f1d;text-wrap:balance}
+.vcard .stp{font:600 18px var(--display);color:#8B5A48;letter-spacing:.08em;text-transform:uppercase}
+.vcard:focus-visible{outline:3px solid var(--noun);outline-offset:4px;border-radius:26px}
+.vcard:hover .ico{animation:wiggle .6s ease-in-out infinite}
+/* recap */
+.recap{position:absolute;left:40px;top:128px;width:1200px;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.rp{position:relative;background:#fff;border-radius:20px;padding:10px;box-shadow:0 5px 0 rgba(234,176,127,.45);cursor:zoom-in;border:0;font:inherit;text-align:left}
+.rp .imgs{display:flex;gap:6px;height:158px}
+.rp .imgs img{flex:1;min-width:0;height:100%;object-fit:cover;border-radius:12px}
+.rp .cap{display:flex;gap:10px;align-items:flex-start;padding:10px 4px 2px}
+.rp .no{flex:none;width:38px;height:38px;border-radius:50%;background:var(--apricot);color:#fff;font:700 22px var(--display);display:grid;place-items:center}
+.rp .tx{font-weight:900;font-size:18px;line-height:1.22;color:#2a1f1d}
+.rp:focus-visible{outline:3px solid var(--noun);outline-offset:3px}
+/* worksheet: sort */
+.sort-wrap{position:absolute;left:52px;top:56px;width:640px}
+.sortlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.strip{position:relative;display:flex;align-items:center;gap:14px;height:72px;padding:0 18px 0 12px;background:#fff;border:3px dashed #C9A08A;border-radius:14px;
+  font-weight:900;font-size:25px;color:#2a1f1d;cursor:grab;touch-action:none;transition:transform .2s,border-color .3s,background .3s}
+.strip .sc{width:34px;height:34px;flex:none}
+.strip .pos{margin-left:auto;font:600 22px var(--display);color:#B58B78;width:40px;text-align:right}
+.strip.dragging{opacity:.25}
+.strip.right{border-style:solid;border-color:var(--mint);background:#F2FBF5}
+.strip.wrong{border-style:solid;border-color:var(--verb);background:#FFF1EF;animation:shake .4s}
+.drag-ghost{position:absolute;z-index:50;pointer-events:none;transform:rotate(-2deg) scale(1.03);box-shadow:0 14px 26px rgba(90,40,30,.25)}
+.sort-side{position:absolute;left:740px;top:40px;width:500px}
+.sort-side .bubble-title{font-size:60px;text-align:center;margin:0}
+/* worksheet: match */
+.sheet{position:absolute;left:36px;top:24px;width:640px;height:672px;background:#fff;border-radius:6px;box-shadow:0 10px 24px rgba(90,40,30,.18);padding:14px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+.sheet h3{margin:0;text-align:center;font:700 22px var(--body);color:#222}
+.sheet table{width:100%;border-collapse:collapse;table-layout:fixed}
+.sheet th,.sheet td{border:2px solid #555;font-size:16px;padding:0}
+.sheet th{height:30px;font-weight:800;background:#FAF5F0}
+.sheet td{height:66px;vertical-align:middle}
+.sheet td.no{text-align:center;font-weight:900;font-size:20px;width:34px}
+.sheet td.st{padding:4px 8px;font-weight:800;font-size:16px;line-height:1.2}
+.slot{height:62px;margin:2px;border:2px dashed #D7B9A8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#C4A493;font-size:13px;font-weight:800;overflow:hidden;transition:background .2s,border-color .2s}
+.slot.hover{background:#FFF6D6;border-color:#E9B04F}
+.slot.right{border:3px solid var(--mint)}
+.slot.wrong{border:3px solid var(--verb);animation:shake .4s}
+.note{min-height:58px;padding:4px 6px;font-weight:700;font-size:15px;color:#5B30E6;outline:none;-webkit-user-select:text;user-select:text;cursor:text}
+.note:empty::before{content:attr(data-ph);color:#CDB8AC}
+.note:focus{background:#FFFBE6}
+.sheet .ingbox{border:2px solid #555;flex:1;padding:6px 10px;font-size:15px;font-weight:700;color:#333;display:flex;flex-direction:column;gap:4px;min-height:0}
+.sheet .ingbox b{font-size:16px}
+.sheet .ingbox .list{display:flex;flex-wrap:wrap;gap:4px 8px}
+.sheet .ingbox .list span{background:#FAF1E9;border-radius:6px;padding:1px 8px}
+.pic{display:flex;gap:3px;height:58px;padding:3px;background:#fff;border-radius:10px;box-shadow:0 4px 10px rgba(90,40,30,.18);cursor:grab;touch-action:none}
+.pic img{height:100%;width:auto;border-radius:6px;pointer-events:none}
+.tray .pic{height:84px}
+.slot .pic{box-shadow:none;height:56px;cursor:grab}
+.match-side{position:absolute;left:712px;top:28px;width:540px}
+.match-side .bubble-title{font-size:44px;text-align:center;margin:0}
+.tray{margin-top:18px;min-height:200px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-content:flex-start;padding:14px;border:3px dashed #EBB98F;border-radius:22px;background:rgba(255,255,255,.6)}
+.tray.hover{background:#FFF6D6}
+.ws-controls{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.score{font:600 26px var(--display);color:#2E6B44;text-align:center;min-height:34px;margin-top:6px}
+/* thank you */
+.thanks-card{position:absolute;left:200px;top:180px;width:880px;height:330px;border-radius:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.thanks-card .bubble-title{font-size:120px;margin:0}
+.thanks-card p{margin:0;font-weight:800;font-size:28px;color:#4E302C;text-align:center}
+.pill{position:absolute;left:50%;top:540px;transform:translateX(-50%);background:var(--tag);color:#4E302C;font:600 30px var(--display);padding:8px 34px;border-radius:12px}
+
+/* ---------- chrome: counter, help, notes, draw, lightbox ---------- */
+#counter{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;font:700 14px var(--body);color:#6A3C3A;background:rgba(255,255,255,.8);padding:5px 12px;border-radius:999px;pointer-events:none;font-variant-numeric:tabular-nums}
+#counter .lead{margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--tag);color:#fff}
+#counter .lead.ai{background:var(--noun)}
+#progress{position:fixed;left:0;top:env(safe-area-inset-top,0px);height:4px;background:var(--verb);z-index:30;transition:width .4s;pointer-events:none}
+#help{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:rgba(59,42,40,.92);color:#FFF4EA;font:700 15px var(--body);padding:10px 18px;border-radius:14px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 32px);box-sizing:border-box;transition:opacity .5s;pointer-events:none}
+#help kbd{background:#FFF4EA;color:#3B2A28;border-radius:5px;padding:1px 7px;font:800 13px var(--body)}
+#help.hide{opacity:0}
+#notes{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);width:min(900px,calc(100% - 32px));max-height:46vh;overflow:auto;z-index:45;background:#FFFDF9;border:3px solid #EAB07F;border-radius:20px;box-shadow:0 20px 50px rgba(59,42,40,.35);padding:16px 22px;box-sizing:border-box;opacity:0;visibility:hidden;transition:all .3s;-webkit-user-select:text;user-select:text}
+#notes.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+#notes header{display:flex;align-items:center;gap:10px;margin-bottom:8px;font:600 18px var(--display);color:#8B5A48}
+#notes header .who{background:var(--tag);color:#fff;border-radius:999px;padding:2px 12px;font-size:15px}
+#notes header .who.ai{background:var(--noun)}
+#notes header .x{margin-left:auto;font:700 13px var(--body);color:#B58B78}
+#notes .body{font-size:18px;line-height:1.55;color:#2a1f1d}
+#notes .body p{margin:0 0 8px}
+#notes .body b{color:var(--verb)}
+#notes .body .ask{color:var(--noun);font-weight:800}
+#draw-layer{position:absolute;inset:0;width:1280px;height:720px;z-index:20;pointer-events:none}
+body.drawing #draw-layer{pointer-events:auto;cursor:crosshair}
+body.drawing.erasing #draw-layer{cursor:none}
+#eraser{position:absolute;width:36px;height:36px;margin:-18px 0 0 -18px;border:2px solid #6A3C3A;border-radius:50%;background:rgba(255,255,255,.5);z-index:21;pointer-events:none;display:none}
+#drawbar{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);z-index:40;display:flex;align-items:center;gap:8px;background:#3B2A28;padding:8px 12px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .3s;color:#FFF4EA;font:700 14px var(--body)}
+body.drawing #drawbar{transform:translate(-50%,0)}
+#drawbar .sw{width:28px;height:28px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}
+#drawbar .sw[aria-pressed="true"]{border-color:#fff;transform:scale(1.15)}
+#drawbar .sz{width:30px;height:30px;border-radius:50%;border:2px solid #7a6360;background:none;cursor:pointer;display:grid;place-items:center;padding:0}
+#drawbar .sz i{display:block;border-radius:50%;background:#FFF4EA}
+#drawbar .sz[aria-pressed="true"]{border-color:#fff}
+#drawbar .tb{background:#5a4542;border:0;color:#FFF4EA;font:800 13px var(--body);border-radius:999px;padding:6px 12px;cursor:pointer}
+#drawbar .hint{opacity:.7;font-size:12px;padding:0 4px}
+#lightbox{position:fixed;inset:0;z-index:60;background:rgba(59,42,40,.78);display:grid;place-items:center;opacity:0;visibility:hidden;transition:all .3s;cursor:zoom-out;padding:max(16px,env(safe-area-inset-left,0px))}
+#lightbox.show{opacity:1;visibility:visible}
+#lightbox .lb{display:flex;gap:10px;max-width:92vw;max-height:84vh;background:#fff;padding:12px;border-radius:18px;transform:scale(.9);transition:transform .3s}
+#lightbox.show .lb{transform:none}
+#lightbox img{max-height:calc(84vh - 24px);max-width:100%;min-width:0;object-fit:contain;border-radius:10px}
+#toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top,0px));transform:translate(-50%,-20px);z-index:55;background:#fff;border:3px solid var(--brown);color:var(--brown);font:900 18px var(--body);padding:8px 18px;border-radius:14px;opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.burst{position:absolute;pointer-events:none;z-index:15}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<!-- ============ SVG library ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-star" viewBox="0 0 100 100"><path d="M50.0 8.0 L62.3 35.0 L91.8 38.4 L70.0 58.5 L75.9 87.6 L50.0 73.0 L24.1 87.6 L30.0 58.5 L8.2 38.4 L37.7 35.0Z" fill="#fff" stroke="#fff" stroke-width="16" stroke-linejoin="round"/><path d="M50.0 8.0 L62.3 35.0 L91.8 38.4 L70.0 58.5 L75.9 87.6 L50.0 73.0 L24.1 87.6 L30.0 58.5 L8.2 38.4 L37.7 35.0Z" fill="#FBEFA8" stroke="#4A3A38" stroke-width="5" stroke-linejoin="round"/><path d="M40 30 L46 40" stroke="#fff" stroke-width="5" stroke-linecap="round"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 100 100"><path d="M50 4C55 38 62 45 96 50C62 55 55 62 50 96C45 62 38 55 4 50C38 45 45 38 50 4Z" fill="#fff" stroke="#fff" stroke-width="12" stroke-linejoin="round"/><path d="M50 4C55 38 62 45 96 50C62 55 55 62 50 96C45 62 38 55 4 50C38 45 45 38 50 4Z" fill="#F4DFA0" stroke="#4A3A38" stroke-width="4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cherry" viewBox="0 0 60 60"><path d="M19 40Q23 22 35 10M42 40Q39 24 35 10" fill="none" stroke="#5E4A44" stroke-width="2.4" stroke-linecap="round"/><path d="M35 10Q46 1 55 7Q46 14 35 10Z" fill="#A8C994" stroke="#5E4A44" stroke-width="2"/><circle cx="17" cy="45" r="9" fill="#F0A3A3" stroke="#5E4A44" stroke-width="2.4"/><circle cx="43" cy="45" r="9" fill="#F0A3A3" stroke="#5E4A44" stroke-width="2.4"/><circle cx="14" cy="42" r="2.4" fill="#fff"/><circle cx="40" cy="42" r="2.4" fill="#fff"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 100 100"><path d="M50 86C20 63 8 46 14 30C20 16 40 14 50 30C60 14 80 16 86 30C92 46 80 63 50 86Z" fill="currentColor" stroke="#fff" stroke-width="7" stroke-linejoin="round"/><path d="M50 86C20 63 8 46 14 30C20 16 40 14 50 30C60 14 80 16 86 30C92 46 80 63 50 86Z" fill="none" stroke="#6A4A44" stroke-width="3"/></symbol>
+    <symbol id="i-tulip" viewBox="0 0 60 80"><path d="M30 40V76M30 62Q20 56 16 46M30 66Q40 60 44 52" fill="none" stroke="#6A8F62" stroke-width="2.6" stroke-linecap="round"/><path d="M18 18Q18 42 30 42Q42 42 42 18L36 26L30 14L24 26Z" fill="#F2A3A6" stroke="#6A4A44" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-scissors" viewBox="0 0 40 40"><circle cx="9" cy="11" r="6" fill="none" stroke="#E0473F" stroke-width="3"/><circle cx="9" cy="29" r="6" fill="none" stroke="#E0473F" stroke-width="3"/><path d="M14 14L36 30M14 26L36 10" stroke="#5E4A44" stroke-width="3" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div id="viewport"><div id="stage">
+
+<!-- 1. Title (Teacher) -->
+<section class="slide" data-lead="Teacher" id="s-title">
+  <div class="deco tw" style="left:120px;top:58px;width:64px;height:64px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco tw" style="left:470px;top:70px;width:56px;height:56px;animation-delay:.5s"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:730px;top:70px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:930px;top:140px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:60px;top:420px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:520px;top:620px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:1150px;top:610px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco tw" style="left:1120px;top:-10px;width:120px;height:120px"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:1210px;top:90px;width:80px;height:80px;animation-delay:.8s"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:-20px;top:600px;width:130px;height:130px;animation-delay:.3s"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:90px;top:530px;width:80px;height:80px;animation-delay:1.1s"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:640px;top:120px;width:48px;height:48px"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco tw" style="left:690px;top:150px;width:30px;height:30px;animation-delay:.6s"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco tw" style="left:1100px;top:380px;width:44px;height:44px;animation-delay:.4s"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco tw" style="left:380px;top:510px;width:40px;height:40px;animation-delay:.9s"><svg><use href="#i-spark"/></svg></div>
+  <div class="title-card card" data-in style="--d:100"><h1 class="bubble-title split">How to make vanilla cupcakes?</h1></div>
+  <div class="girl bob" data-in="left" style="left:70px;top:110px;width:330px"><img data-img="girl_wave.webp" alt="Chef girl waving"></div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Warm-up (Teacher).</b> Today we are going to bake! Read the title together: “How to make vanilla cupcakes?”</p>
+    <p class="ask">Ask: Have you ever eaten a cupcake? What flavor do you like?</p>
+    <p>Middle-click to draw on the slide. Circle the word “vanilla”.</p>
+  </aside>
+</section>
+
+<!-- 2. Choose one (Teacher) -->
+<section class="slide" data-lead="Teacher" id="s-choose" data-mod="choose">
+  <div class="deco tw" style="left:60px;top:40px;width:70px;height:70px"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco tw" style="left:1120px;top:40px;width:70px;height:70px;animation-delay:.6s"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco" style="left:330px;top:60px;width:56px;height:56px;color:#EDB4A6"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco" style="left:880px;top:70px;width:56px;height:56px;color:#F2A6AE"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco" style="left:150px;top:600px;width:56px;height:56px;color:#F2C8A6"><svg><use href="#i-heart"/></svg></div>
+  <div class="deco" style="left:1110px;top:590px;width:56px;height:56px;color:#EDB4A6"><svg><use href="#i-heart"/></svg></div>
+  <div class="choose-row">
+    <button class="pick" data-in="up" style="--d:100;left:70px;top:190px" data-k="1" aria-label="Cupcake 1, s'mores"><img data-img="cup1.webp" alt=""><span class="num" style="left:-6px;bottom:6px">1</span><span class="votes">0</span><span class="crown">Top pick</span></button>
+    <button class="pick" data-in="drop" style="--d:250;left:490px;top:60px" data-k="2" aria-label="Cupcake 2, snowman"><img data-img="cup2.webp" alt=""><span class="num" style="left:-30px;top:110px">2</span><span class="votes">0</span><span class="crown">Top pick</span></button>
+    <button class="pick" data-in="up" style="--d:400;left:910px;top:190px" data-k="3" aria-label="Cupcake 3, marshmallow"><img data-img="cup3.webp" alt=""><span class="num" style="left:-8px;bottom:10px">3</span><span class="votes">0</span><span class="crown">Top pick</span></button>
+  </div>
+  <h2 class="bubble-title split" style="position:absolute;left:0;right:0;top:470px;text-align:center;font-size:96px;margin:0">Choose one</h2>
+  <div style="position:absolute;left:0;right:0;top:610px;display:flex;justify-content:center;gap:10px;--d:600" data-in="up">
+    <span class="hl" style="font-size:22px;padding:6px 16px">Click a cupcake to vote</span>
+    <button class="btn small" data-act="reset">Reset votes</button>
+  </div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Warm-up (Teacher).</b> Look at these three cupcakes. Which one do you want to eat?</p>
+    <p>Click a cupcake once for each student who picks it. The top pick gets a label.</p>
+    <p class="ask">Ask: Why do you like it? What is on top? (chocolate, marshmallows, a snowman)</p>
+  </aside>
+</section>
+
+<!-- 3. Video + Q&A -->
+<section class="slide" data-lead="Video + Q&amp;A" id="s-video" data-mod="video">
+  <div class="deco tw" style="left:1180px;top:600px;width:90px;height:90px"><svg><use href="#i-star"/></svg></div>
+  <div class="deco" style="left:20px;top:620px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div style="position:absolute;left:56px;top:34px" data-in="left"><span class="tag">Watch &amp; Talk</span></div>
+  <div class="video-box" data-in="up" style="--d:100">
+    <video id="vid" controls playsinline hidden></video>
+    <div class="video-empty" id="vidEmpty">
+      <div>
+        <div class="play"><svg width="50" height="50" viewBox="0 0 50 50"><path d="M16 10L40 25L16 40Z" fill="#FCE7D6"/></svg></div>
+        Your video goes here
+        <div style="margin-top:14px"><label class="btn" for="vidFile" style="display:inline-block">Choose a video file</label><input id="vidFile" type="file" accept="video/*" hidden></div>
+      </div>
+    </div>
+  </div>
+  <div class="qa">
+    <button class="qcard" data-in="right" style="--d:200"><div class="in"><div class="f"><span class="qn">1</span><span class="q">Which cupcake did you choose? Why?</span></div><div class="b">“I chose number __ because it looks yummy!”</div></div></button>
+    <button class="qcard" data-in="right" style="--d:300"><div class="in"><div class="f"><span class="qn">2</span><span class="q">What is inside a vanilla cupcake?</span></div><div class="b">Flour, eggs, sugar, milk, oil… and vanilla!</div></div></button>
+    <button class="qcard" data-in="right" style="--d:400"><div class="in"><div class="f"><span class="qn">3</span><span class="q">Where do we bake cupcakes?</span></div><div class="b">In the oven!</div></div></button>
+    <button class="qcard" data-in="right" style="--d:500"><div class="in"><div class="f"><span class="qn">4</span><span class="q">How many cupcakes will our recipe make?</span></div><div class="b">12 cupcakes</div></div></button>
+  </div>
+  <div class="girl" data-in="up" style="--d:500;left:600px;top:556px;width:150px"><img data-img="girl_pin.webp" alt=""></div>
+  <aside class="notes" data-lead="Video + Q&amp;A">
+    <p><b>Your video and Q&amp;A.</b> Click “Choose a video file” to load the video from this computer, then play it.</p>
+    <p>After the video, click each question card to flip it and show a sample answer.</p>
+  </aside>
+</section>
+
+<!-- 4. Ingredients (AI) -->
+<section class="slide" data-lead="AI" id="s-ingr" data-mod="ingredients">
+  <div class="deco tw" style="left:1180px;top:140px;width:70px;height:70px"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:1120px;top:60px;width:44px;height:44px;animation-delay:.5s"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco" style="left:1180px;top:260px;width:40px;height:56px"><svg><use href="#i-tulip"/></svg></div>
+  <div class="ingr-head" data-in="left">
+    <span class="label step-word">INGREDIENTS</span>
+    <div class="serve">Make
+      <div class="seg" role="group" aria-label="Number of cupcakes">
+        <button data-f="0.5" aria-pressed="false">6</button><button data-f="1" aria-pressed="true">12</button><button data-f="2" aria-pressed="false">24</button>
+      </div> cupcakes</div>
+    <span class="ready-count" id="readyCount">Ready 0 / 9</span>
+  </div>
+  <div class="ingr-grid" id="ingrGrid"></div>
+  <div class="girl bob" data-in="right" style="--d:500;left:1060px;top:430px;width:210px"><img data-img="girl_bowl.webp" alt=""></div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Before we bake, let's check our ingredients. This recipe makes twelve cupcakes.</p>
+    <p>Let's read them together: cake flour, one hundred ninety grams. Baking powder, one and a half teaspoons. Salt, a quarter teaspoon. Sunflower oil, one hundred twenty grams. Sugar, one hundred ten grams. Three eggs. One teaspoon of vanilla extract. Milk, forty grams. Honey, thirty grams.</p>
+    <p>Click each card when the ingredient is ready. Try the 6 / 12 / 24 switch: <span class="ask">If we make 24 cupcakes, how many eggs do we need?</span> (6)</p>
+    <p>The small label shows which step uses each ingredient.</p>
+  </aside>
+</section>
+
+<!-- 5. Cooking verbs (AI) -->
+<section class="slide" data-lead="AI" id="s-verbs" data-mod="verbs">
+  <div class="deco tw" style="left:1170px;top:30px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
+  <div class="deco" style="left:30px;top:640px;width:50px;height:50px"><svg><use href="#i-cherry"/></svg></div>
+  <h2 class="bubble-title split" style="position:absolute;left:60px;top:36px;margin:0;font-size:70px">Kitchen words</h2>
+  <span class="hl" style="position:absolute;left:720px;top:58px;font-size:22px" data-in="right">Click a card to flip it</span>
+  <div class="verbs" id="verbs"></div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Here are six action words we will use today. Listen and repeat: Mix. Sieve. Whisk. Add. Spoon. Bake.</p>
+    <p>Click a card to flip it and read the sentence together.</p>
+    <p class="ask">Ask: Show me “whisk” with your hand! Show me “mix”!</p>
+  </aside>
+</section>
+
+<!-- 6. Step 1 -->
+<section class="slide" data-lead="AI" id="s-step1" data-mod="step1">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_pin.webp" alt=""></div>
+      <div class="step-badge step-word" data-in style="--d:150">STEP 1</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Prepare the liquids</span>
+      <p><span class="v">Mix</span> <span class="n">milk</span> and <span class="n">honey</span>.<br><span class="v">Heat</span> and let it cool.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it</li><li data-t="milk">Add milk</li><li data-t="honey">Add honey</li><li data-t="heat">Heat 30 seconds</li><li data-t="stir">Stir</li><li data-t="cool">Let it cool</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Microwave</span>
+    <div class="lab card" data-in="right" style="--d:150">
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls">
+        <button class="btn" data-a="milk">Add milk · 40 g</button><button class="btn" data-a="honey">Add honey · 30 g</button>
+        <button class="btn go" data-a="heat">Heat · 30 s</button><button class="btn" data-a="stir">Stir</button><button class="btn" data-a="cool">Let it cool</button>
+      </div>
+    </div>
+    <div class="polaroid" style="left:420px;top:-6px;width:150px;height:150px;transform:rotate(5deg);--d:500" data-zoom="ph_liquids.webp" data-in><img data-img="ph_liquids.webp" alt="Milk, honey and a bowl"><span>photo</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step one: prepare the liquids. We <b>mix</b> milk and honey. Then we <b>heat</b> them in the microwave for thirty seconds, and let it cool.</p>
+    <p>Let's try it. Add the milk… add the honey… now press Heat. The microwave is on! Thirty seconds… ding! Stir it well, then let it cool down.</p>
+    <p class="ask">Ask: What do we mix in step one? (milk and honey) How long do we heat it? (30 seconds)</p>
+    <p>Timers run fast by default. Switch to “Real” to use real time.</p>
+  </aside>
+</section>
+
+<!-- 7. Step 2 -->
+<section class="slide flip" data-lead="AI" id="s-step2" data-mod="step2">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="right" style="width:210px;top:4px"><img data-img="girl_bowl.webp" alt=""></div>
+      <div class="step-badge step-word" data-in style="--d:150">STEP 2</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Prepare the dry ingredients</span>
+      <p><span class="v">Mix</span> and <span class="v">sieve</span> <span class="n">cake flour</span>, <span class="n">baking powder</span>, and <span class="n">salt</span>.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it</li><li data-t="flour">Cake flour</li><li data-t="bp">Baking powder</li><li data-t="salt">Salt</li><li data-t="sieve">Shake the sieve</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Sieve</span>
+    <div class="lab card" data-in="left" style="--d:150">
+      <div class="lab-bar"><span class="meter" style="max-width:150px"><i class="sieve-meter"></i></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls">
+        <button class="btn" data-a="flour">Cake flour · 190 g</button><button class="btn" data-a="bp">Baking powder · 1½ tsp</button><button class="btn" data-a="salt">Salt · ¼ tsp</button>
+        <button class="btn go" data-a="sieve">Shake the sieve</button>
+      </div>
+    </div>
+    <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:130px;transform:rotate(-5deg);--d:500" data-zoom="p2.webp" data-in><img data-img="p2.webp" alt="Sieving flour"><span>picture</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step two: prepare the dry ingredients. Put the cake flour, the baking powder and the salt in the <b>sieve</b>.</p>
+    <p>Now shake, shake, shake! Sieving makes the flour light and fluffy, with no lumps.</p>
+    <p class="ask">Ask: What three dry ingredients do we sieve? (cake flour, baking powder, salt)</p>
+    <p>Students can call out “Shake!” each time you click.</p>
+  </aside>
+</section>
+
+<!-- 8. Step 3 -->
+<section class="slide" data-lead="AI" id="s-step3" data-mod="step3">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_spatula.webp" alt=""></div>
+      <div class="step-badge step-word" data-in style="--d:150">STEP 3</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Whisk the eggs and sugar</span>
+      <p><span class="v">Whisk</span> <span class="n">eggs</span> on high speed for 2 minutes. <span class="v">Add</span> <span class="n">sugar</span> and <span class="v">mix</span> until creamy.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it</li><li data-t="eggs">Crack 3 eggs</li><li data-t="whisk1">Whisk 2 min</li><li data-t="sugar">Add sugar</li><li data-t="whisk2">Whisk until creamy</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Whisk</span>
+    <div class="lab card" data-in="right" style="--d:150">
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls">
+        <button class="btn" data-a="eggs">Crack 3 eggs</button><button class="btn go" data-a="whisk1">Whisk · high · 2 min</button>
+        <button class="btn" data-a="sugar">Add sugar · 110 g</button><button class="btn go" data-a="whisk2">Whisk until creamy</button>
+      </div>
+    </div>
+    <div class="polaroid" style="left:400px;top:-6px;width:84px;height:120px;transform:rotate(4deg);--d:500" data-zoom="p3a.webp,p3b.webp" data-in><img data-img="p3a.webp" alt="Whisking eggs"><span>2 min</span></div>
+    <div class="polaroid" style="left:486px;top:2px;width:84px;height:120px;transform:rotate(-3deg);--d:600" data-zoom="p3a.webp,p3b.webp" data-in><img data-img="p3b.webp" alt="Adding sugar"><span>+ sugar</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step three: <b>whisk</b> the eggs and sugar. Crack three eggs into the bowl. Whisk on high speed for two minutes. Bzzzz!</p>
+    <p>Now add the sugar, one hundred ten grams, and whisk again until it is pale and creamy.</p>
+    <p class="ask">Ask: What color is the mixture now? (pale yellow) How does it feel? (creamy, fluffy)</p>
+  </aside>
+</section>
+
+<!-- 9. Step 4-1 -->
+<section class="slide flip" data-lead="AI" id="s-step41" data-mod="step41">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="right" style="width:200px;top:4px"><img data-img="girl_spatula.webp" alt=""></div>
+      <div class="step-badge step-word long" data-in style="--d:150">STEP 4-1</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Add oil and flavor</span>
+      <p><span class="v">Add</span> the <span class="n">sunflower seed oil</span> slowly from the side, and <span class="v">whisk</span> for another 3 minutes.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it</li><li data-t="pour">Pour 120 g oil slowly</li><li data-t="whisk">Whisk 3 min</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Add oil</span>
+    <div class="lab card" data-in="left" style="--d:150">
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls" style="align-items:center">
+        <label for="pourSpeed" style="font-weight:800;color:#8B5A48">Slow</label>
+        <input id="pourSpeed" type="range" min="1" max="10" value="3" style="width:150px;accent-color:#E0473F">
+        <label for="pourSpeed" style="font-weight:800;color:#8B5A48">Fast</label>
+        <button class="btn go" data-a="pour" style="touch-action:none">Hold to pour</button><button class="btn go" data-a="whisk">Whisk · 3 min</button>
+      </div>
+    </div>
+    <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:150px;transform:rotate(-5deg);--d:500" data-zoom="ph_oil.webp" data-in><img data-img="ph_oil.webp" alt="Pouring oil from the side"><span>from the side</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step four, part one: add the <b>sunflower seed oil</b>. Pour it slowly, from the side of the bowl.</p>
+    <p>Hold the button to pour. Keep the slider on slow. Oh no, too fast! Slowly, slowly… one hundred twenty grams. Now whisk for another three minutes.</p>
+    <p class="ask">Ask: Do we pour the oil fast or slow? (slowly) Where do we pour it? (from the side)</p>
+  </aside>
+</section>
+
+<!-- 10. Step 4-2 -->
+<section class="slide" data-lead="AI" id="s-step42" data-mod="step42">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_bowl.webp" alt=""></div>
+      <div class="step-badge step-word long" data-in style="--d:150">STEP 4-2</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Add oil and flavor</span>
+      <p><span class="v">Add</span> the <span class="n">vanilla extract</span> and the <span class="n">honey milk</span>. <span class="v">Mix</span> with a spatula.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it</li><li data-t="vanilla">Add vanilla</li><li data-t="milk">Add honey milk</li><li data-t="mix">Mix: drag around the bowl</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Add flavor</span>
+    <div class="lab card" data-in="right" style="--d:150">
+      <div class="lab-bar"><span class="meter" style="max-width:160px"><i class="mix-meter"></i></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls">
+        <button class="btn" data-a="vanilla">Add vanilla · 1 tsp</button><button class="btn" data-a="milk">Add honey milk</button>
+      </div>
+    </div>
+    <div class="polaroid" style="left:420px;top:-6px;width:150px;height:170px;transform:rotate(5deg);--d:500" data-zoom="p4a.webp,p4b.webp" data-in><img data-img="p4b.webp" alt="Adding vanilla and honey milk"><span>picture</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step four, part two: now the flavor! Add one teaspoon of <b>vanilla extract</b>. Smell it, mmm! Then add the honey milk from step one.</p>
+    <p>Now mix with a spatula. Drag around the bowl, round and round, until everything is the same color.</p>
+    <p class="ask">Ask: Which liquid did we make in step one? (honey milk) What gives the cupcake its flavor? (vanilla)</p>
+  </aside>
+</section>
+
+<!-- 11. Step 5 -->
+<section class="slide flip" data-lead="AI" id="s-step5" data-mod="step5">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="right" style="width:200px;top:4px"><img data-img="girl_spatula.webp" alt=""></div>
+      <div class="step-badge step-word" data-in style="--d:150">STEP 5</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Mix with flour</span>
+      <p><span class="v">Add</span> <span class="n">flour</span> in 3–4 times.<br><span class="v">Mix</span> gently.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it: add, then mix</li><li data-t="f1">Flour 1</li><li data-t="f2">Flour 2</li><li data-t="f3">Flour 3</li><li data-t="f4">Flour 4</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Mix</span>
+    <div class="lab card" data-in="left" style="--d:150">
+      <div class="lab-bar"><span class="meter" style="max-width:160px"><i class="mix-meter"></i></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls"><button class="btn go" data-a="add">Add flour (1 of 4)</button></div>
+    </div>
+    <div class="polaroid" style="left:-6px;top:-4px;width:150px;height:150px;transform:rotate(-5deg);--d:500" data-zoom="ph_mix.webp" data-in><img data-img="ph_mix.webp" alt="Folding flour into batter"><span>mix gently</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step five: mix with flour. Don't add all the flour at once! Add it in three or four parts.</p>
+    <p>Add some flour, then mix gently with the spatula. Drag slowly around the bowl until the white flour disappears. Then add more.</p>
+    <p class="ask">Ask: Do we mix fast or gently? (gently) How many times do we add flour? (three or four)</p>
+  </aside>
+</section>
+
+<!-- 12. Step 6 -->
+<section class="slide" data-lead="AI" id="s-step6" data-mod="step6">
+  <div class="step-text">
+    <div class="step-head">
+      <div class="girl bob" data-in="left" style="width:200px;top:4px"><img data-img="girl_pin.webp" alt=""></div>
+      <div class="step-badge step-word" data-in style="--d:150">STEP 6</div>
+    </div>
+    <div class="instr card" data-in="up" style="--d:250">
+      <span class="hl">Fill the cups &amp; Bake</span>
+      <p><span class="v">Spoon</span> the <span class="n">batter</span> into cupcake cases.<br><span class="v">Bake</span> at 180°C for 16 minutes.</p>
+    </div>
+    <ol class="tasks" data-in="up" style="--d:400"><li class="cap">Try it</li><li data-t="fill">Fill 12 cases</li><li data-t="bake">Bake 180°C · 16 min</li></ol>
+  </div>
+  <div class="step-lab">
+    <span class="tag lab-tag" data-in="drop">Spoon</span>
+    <div class="lab card" data-in="right" style="--d:150">
+      <div class="lab-bar"><span class="speed-slot"></span><button class="btn small" data-act="reset">Start over</button></div>
+      <div class="scene"><div class="say"></div><svg viewBox="0 0 540 380" class="sv"></svg></div>
+      <div class="controls"><button class="btn" data-a="fillall">Fill them all</button><button class="btn go" data-a="bake">Bake · 180°C · 16 min</button></div>
+    </div>
+    <div class="polaroid" style="left:420px;top:-6px;width:150px;height:130px;transform:rotate(5deg);--d:500" data-zoom="p6.webp" data-in><img data-img="p6.webp" alt="Spooning batter into cases"><span>picture</span></div>
+  </div>
+  <aside class="notes" data-lead="AI">
+    <p><b>AI script.</b> Step six: fill the cups and bake. Use a <b>spoon</b> to put the batter into the cupcake cases. Fill each case about two-thirds full.</p>
+    <p>Click each case to fill it. Twelve cases! Now bake at one hundred eighty degrees for sixteen minutes. Look, the cupcakes are rising!</p>
+    <p class="ask">Ask: How hot is the oven? (180 degrees) How long do we bake? (16 minutes)</p>
+  </aside>
+</section>
+
+<!-- 13. Recap -->
+<section class="slide" data-lead="AI" id="s-recap" data-mod="recap">
+  <div class="deco tw" style="left:1170px;top:24px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
+  <h2 class="bubble-title split" style="position:absolute;left:44px;top:30px;margin:0;font-size:64px">The whole recipe</h2>
+  <span class="hl" style="position:absolute;left:720px;top:48px;font-size:22px" data-in="right">Click a picture to zoom in</span>
+  <div class="recap" id="recap"></div>
+  <aside class="notes" data-lead="AI">
+    <p><b>Review.</b> Let's look at all six steps again. Read each step together.</p>
+    <p class="ask">Ask: Point to the picture where we sieve. Which step uses the oven?</p>
+    <p>These pictures are the ones students will match on the worksheet.</p>
+  </aside>
+</section>
+
+<!-- 14. Cut out and sort (Teacher) -->
+<section class="slide" data-lead="Teacher" id="s-sort" data-mod="sort">
+  <div class="deco tw" style="left:1180px;top:640px;width:80px;height:80px"><svg><use href="#i-star"/></svg></div>
+  <div class="sort-wrap"><ul class="sortlist" id="sortlist"></ul>
+    <div class="ws-controls"><button class="btn go" data-act="check">Check the order</button><button class="btn" data-act="shuffle">Shuffle</button></div>
+    <div class="score" id="sortScore"></div>
+  </div>
+  <div class="sort-side">
+    <h2 class="bubble-title split">Cut out and sort the steps one by one.</h2>
+    <p class="hl" style="display:block;margin:22px auto 0;width:max-content;font-size:22px" data-in="up">Drag the strips into the right order</p>
+  </div>
+  <div class="girl bob" data-in="right" style="--d:400;left:930px;top:380px;width:260px"><img data-img="girl_bowl.webp" alt=""></div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Worksheet activity (Teacher).</b> Hand out the strips. Students cut out each step and put them in order.</p>
+    <p>On screen: drag the strips to practice together, then click “Check the order”. Green is right, red needs to move.</p>
+  </aside>
+</section>
+
+<!-- 15. Paste and match (Teacher) -->
+<section class="slide" data-lead="Teacher" id="s-match" data-mod="match">
+  <div class="sheet" data-in="left">
+    <h3>Vanilla Cupcake Recipe</h3>
+    <table><colgroup><col style="width:34px"><col style="width:36%"><col style="width:32%"><col></colgroup>
+      <thead><tr><th></th><th>Steps</th><th>Pictures</th><th>Notes</th></tr></thead>
+      <tbody id="matchRows"></tbody></table>
+    <div class="ingbox"><b>Ingredients</b><div class="list" id="ingList"></div></div>
+  </div>
+  <div class="match-side">
+    <h2 class="bubble-title split">1. Paste the steps<br>2. Match the pictures to the steps</h2>
+    <div class="tray" id="tray"></div>
+    <div class="ws-controls"><button class="btn go" data-act="check">Check</button><button class="btn" data-act="reset">Start over</button></div>
+    <div class="score" id="matchScore"></div>
+  </div>
+  <div class="girl" data-in="up" style="--d:400;left:1110px;top:560px;width:150px"><img data-img="girl_thumbs.webp" alt=""></div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Worksheet activity (Teacher).</b> 1. Paste the steps in the table. 2. Match each picture to its step.</p>
+    <p>On screen: drag a picture into the Pictures column, then click “Check”. Click a Notes cell to type a note (for example “30 s”, “2 min”, “180°C”).</p>
+  </aside>
+</section>
+
+<!-- 16. Thank you -->
+<section class="slide" data-lead="Teacher" id="s-thanks" data-mod="thanks">
+  <div class="deco tw" style="left:1120px;top:-10px;width:120px;height:120px"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:1210px;top:90px;width:80px;height:80px;animation-delay:.8s"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:-20px;top:600px;width:130px;height:130px;animation-delay:.3s"><svg><use href="#i-star"/></svg></div>
+  <div class="deco tw" style="left:100px;top:520px;width:80px;height:80px;animation-delay:1.1s"><svg><use href="#i-star"/></svg></div>
+  <div class="deco" style="left:120px;top:60px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:470px;top:70px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:930px;top:120px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:60px;top:300px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco" style="left:1150px;top:610px;width:56px;height:56px"><svg><use href="#i-cherry"/></svg></div>
+  <div class="deco tw" style="left:140px;top:250px;width:44px;height:44px"><svg><use href="#i-spark"/></svg></div>
+  <div class="deco tw" style="left:1100px;top:330px;width:44px;height:44px;animation-delay:.5s"><svg><use href="#i-spark"/></svg></div>
+  <div class="thanks-card card" data-in><h2 class="bubble-title split">Thank you</h2><p>Feel free to ask us if you have any questions.</p></div>
+  <div class="pill" data-in="up" style="--d:600">Happy baking!</div>
+  <aside class="notes" data-lead="Teacher">
+    <p><b>Closing (Teacher).</b> Great job, bakers! Thank you. Any questions?</p>
+  </aside>
+</section>
+
+<canvas id="draw-layer" width="2560" height="1440"></canvas>
+<div id="eraser"></div>
+</div></div>
+
+<div id="progress"></div>
+<div id="counter"></div>
+<div id="help"><span><kbd>←</kbd> <kbd>→</kbd> or mouse wheel: change slide</span><span>Middle click: draw mode</span><span><kbd>F1</kbd> notes</span><span><kbd>F</kbd> full screen</span></div>
+<div id="drawbar" role="toolbar" aria-label="Drawing tools">
+  <button class="sw" style="background:#E0473F" data-c="#E0473F" aria-pressed="true" aria-label="Red pen"></button>
+  <button class="sw" style="background:#5B30E6" data-c="#5B30E6" aria-pressed="false" aria-label="Purple pen"></button>
+  <button class="sw" style="background:#2E8B57" data-c="#2E8B57" aria-pressed="false" aria-label="Green pen"></button>
+  <button class="sw" style="background:#3B2A28" data-c="#3B2A28" aria-pressed="false" aria-label="Brown pen"></button>
+  <button class="sw" style="background:#F7E35C" data-c="rgba(247,227,92,.55)" data-w="26" aria-pressed="false" aria-label="Highlighter"></button>
+  <button class="sz" data-w="4" aria-pressed="false" aria-label="Thin"><i style="width:5px;height:5px"></i></button>
+  <button class="sz" data-w="8" aria-pressed="true" aria-label="Medium"><i style="width:9px;height:9px"></i></button>
+  <button class="sz" data-w="14" aria-pressed="false" aria-label="Thick"><i style="width:14px;height:14px"></i></button>
+  <span class="hint">Left: draw · Right: erase</span>
+  <button class="tb" data-act="clear">Clear page</button><button class="tb" data-act="exit">Done</button>
+</div>
+<div id="notes" aria-live="polite"><header><span class="who"></span><span class="ttl"></span><span class="x">F1 to close</span></header><div class="body"></div></div>
+<div id="lightbox"><div class="lb"></div></div>
+<div id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+/* =========================================================
+   Vanilla Cupcakes deck
+   - Deck: navigation (arrows + wheel only), scaling, notes (F1)
+   - Draw: middle click toggles; left draws, right erases strokes
+   - Modules: one object per interactive slide {init, enter, leave, reset}
+   ========================================================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const IMG = {{IMGMAP}};
+const stage = $('#stage');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (a, b, t) => { const A = hex(a), B = hex(b); return 'rgb(' + A.map((v, i) => Math.round(lerp(v, B[i], clamp(t, 0, 1)))).join(',') + ')'; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const safe = fn => { try { return fn(); } catch (e) { console.warn('[deck]', e); } };
+let scale = 1;
+$$('img[data-img]').forEach(i => { const u = IMG[i.dataset.img]; if (u) i.src = u; else console.warn('[deck] missing image', i.dataset.img); });
+
+/* ---------- toast / say ---------- */
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800); }
+function say(root, msg, kind = '', ms = 2200) {
+  const el = $('.say', root); if (!el) return;
+  el.textContent = msg; el.className = 'say show ' + kind;
+  clearTimeout(el._t); if (ms) el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+/* ---------- confetti / hearts ---------- */
+function burst(x, y, n = 18, colors = ['#E0473F', '#F7E35C', '#5B30E6', '#6CB98A', '#F2A3A6', '#F2B184']) {
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('div');
+    d.className = 'burst';
+    const s = 8 + Math.random() * 10;
+    Object.assign(d.style, { left: x + 'px', top: y + 'px', width: s + 'px', height: s * (Math.random() > .5 ? 1 : .5) + 'px', background: colors[i % colors.length], borderRadius: Math.random() > .5 ? '50%' : '2px' });
+    stage.appendChild(d);
+    const a = Math.random() * Math.PI * 2, r = 80 + Math.random() * 140;
+    const anim = d.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: `translate(${Math.cos(a) * r}px,${Math.sin(a) * r + 80}px) rotate(${Math.random() * 720}deg)`, opacity: 0 }], { duration: 900 + Math.random() * 500, easing: 'cubic-bezier(.2,.7,.4,1)' });
+    anim.onfinish = () => d.remove();
+  }
+}
+function stagePoint(el) { const r = el.getBoundingClientRect(), s = stage.getBoundingClientRect(); return [(r.left + r.width / 2 - s.left) / scale, (r.top + r.height / 2 - s.top) / scale]; }
+function toStage(e) { const s = stage.getBoundingClientRect(); return [(e.clientX - s.left) / scale, (e.clientY - s.top) / scale]; }
+
+/* ---------- timer speed (shared) ---------- */
+const Speed = {
+  fast: true,
+  get factor() { return this.fast ? 10 : 1; },
+  mount() {
+    $$('.speed-slot').forEach(slot => {
+      slot.innerHTML = '<span class="speed" role="group" aria-label="Timer speed"><button data-s="fast">Fast</button><button data-s="real">Real time</button></span>';
+      slot.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; this.fast = b.dataset.s === 'fast'; this.sync(); });
+    });
+    this.sync();
+  },
+  sync() { $$('.speed button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.s === 'fast') === this.fast))); }
+};
+/* countdown that honours Speed and can be cancelled */
+function countdown(seconds, onTick, onDone) {
+  let left = seconds, last = performance.now(), raf = 0, dead = false;
+  const loop = now => {
+    if (dead) return;
+    left -= (now - last) / 1000 * Speed.factor; last = now;
+    if (left <= 0) { onTick(0, 1); dead = true; onDone && onDone(); return; }
+    onTick(left, 1 - left / seconds); raf = requestAnimationFrame(loop);
+  };
+  raf = requestAnimationFrame(loop);
+  return { cancel() { dead = true; cancelAnimationFrame(raf); } };
+}
+const mmss = s => { s = Math.ceil(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+/* ---------- shared SVG parts ---------- */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function bowl(cx = 270, cy = 250, w = 300, opts = {}) {
+  // returns markup: back rim, content (#fill), front body. Content surface id given by opts.id
+  const rx = w / 2, ry = w * 0.095, h = w * 0.46;
+  const id = opts.id || 'fill';
+  return `
+  <g class="bowl">
+    <ellipse cx="${cx}" cy="${cy + h + 6}" rx="${rx * .8}" ry="${ry * .7}" fill="rgba(120,60,40,.12)"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#B9C3CB" stroke="#5A4A48" stroke-width="4"/>
+    <g class="${id}">${opts.content || ''}</g>${opts.mid || ''}
+    <path d="M${cx - rx} ${cy} Q${cx} ${cy + ry * 2} ${cx + rx} ${cy} Q${cx + rx * .92} ${cy + h} ${cx} ${cy + h} Q${cx - rx * .92} ${cy + h} ${cx - rx} ${cy}Z" fill="#E4EAEE" stroke="#5A4A48" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M${cx - rx * .7} ${cy + h * .35} Q${cx - rx * .6} ${cy + h * .75} ${cx - rx * .3} ${cy + h * .85}" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+  </g>`;
+}
+function svgEl(tag, attrs, parent) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; }
+function mixer(x, y) {
+  return `<g transform="translate(${x} ${y})"><g class="mixer">
+    <g class="beaters"><g class="bt" style="transform-origin:-14px 0"><line x1="-14" y1="0" x2="-14" y2="70" stroke="#8A9399" stroke-width="5"/><ellipse cx="-14" cy="80" rx="14" ry="20" fill="none" stroke="#8A9399" stroke-width="5"/></g>
+    <g class="bt" style="transform-origin:14px 0"><line x1="14" y1="0" x2="14" y2="70" stroke="#8A9399" stroke-width="5"/><ellipse cx="14" cy="80" rx="14" ry="20" fill="none" stroke="#8A9399" stroke-width="5"/></g></g>
+    <path d="M-60 -10 Q-64 -80 0 -88 Q70 -92 76 -40 L60 -8 Z" fill="#F4F1EE" stroke="#5A4A48" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M10 -86 Q30 -126 70 -116 Q96 -108 86 -78" fill="none" stroke="#5A4A48" stroke-width="12" stroke-linecap="round"/>
+    <path d="M10 -86 Q30 -126 70 -116 Q96 -108 86 -78" fill="none" stroke="#F4F1EE" stroke-width="5" stroke-linecap="round"/>
+    <rect x="-34" y="-58" width="34" height="14" rx="6" fill="#EAB07F"/>
+    <rect x="-34" y="-12" width="68" height="12" rx="4" fill="#C9CED2" stroke="#5A4A48" stroke-width="3"/>
+  </g></g>`;
+}
+const mixerCSS = document.createElement('style');
+mixerCSS.textContent = `.mixer.on .bt{animation:beat .12s linear infinite}@keyframes beat{50%{transform:scaleX(-1)}}
+.wob{animation:wob .5s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes wob{50%{transform:scale(1.03,.95)}}
+.spinner{animation:spin 1.4s linear infinite;transform-box:fill-box;transform-origin:center}
+.steam path{animation:steam 1.8s ease-in-out infinite;opacity:0}.steam path:nth-child(2){animation-delay:.5s}.steam path:nth-child(3){animation-delay:1s}
+@keyframes steam{0%{opacity:0;transform:translateY(10px)}40%{opacity:.8}100%{opacity:0;transform:translateY(-30px)}}`;
+document.head.appendChild(mixerCSS);
+
+/* Pointer "stir" interaction on an SVG area. Calls onProgress(0..1). */
+function stirrer(svg, opts) {
+  const { cx, cy, rx, ry, spoon, need = 2600, onProgress, canStir } = opts;
+  let active = false, last = null, total = 0;
+  const pt = e => { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); };
+  const inside = p => ((p.x - cx) / rx) ** 2 + ((p.y - cy) / ry) ** 2 <= 1.4;
+  svg.style.touchAction = 'none';
+  svg.addEventListener('pointerdown', e => { if (e.button !== 0) return; const p = pt(e); if (!inside(p)) return; if (canStir && !canStir()) return; active = true; last = p; safe(() => svg.setPointerCapture(e.pointerId)); });
+  svg.addEventListener('pointermove', e => {
+    const p = pt(e);
+    if (spoon) { spoon.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${-25 + Math.sin(p.x / 30) * 10})`); spoon.style.opacity = inside(p) ? 1 : .35; }
+    if (!active) return;
+    const d = Math.hypot(p.x - last.x, p.y - last.y); last = p;
+    if (!inside(p)) return;
+    total += Math.min(d, 60); onProgress(clamp(total / need, 0, 1));
+  });
+  const end = () => { active = false; };
+  svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
+  svg.addEventListener('pointerleave', () => { if (spoon) spoon.style.opacity = .35; });
+  return { reset() { total = 0; active = false; }, set need(v) { opts.need = v; } , restart() { total = 0; } };
+}
+function spatula() {
+  return `<g class="spoon" style="opacity:.35;pointer-events:none" transform="translate(470 120)">
+    <rect x="-5" y="-110" width="10" height="90" rx="5" fill="#E0A45E" stroke="#5A4A48" stroke-width="3"/>
+    <path d="M-20 -24 h40 v34 q0 14 -20 14 q-20 0 -20 -14z" fill="#F29AA0" stroke="#5A4A48" stroke-width="3"/></g>`;
+}
+
+/* Task checklist helper for step slides */
+function taskList(root) {
+  const items = $$('.tasks li[data-t]', root);
+  return {
+    done(k) { const li = items.find(i => i.dataset.t === k); li && li.classList.add('ok'); this.focus(); },
+    focus() { items.forEach(i => i.classList.remove('now')); const n = items.find(i => !i.classList.contains('ok')); n && n.classList.add('now'); },
+    reset() { items.forEach(i => i.classList.remove('ok', 'now')); this.focus(); },
+    all() { return items.every(i => i.classList.contains('ok')); }
+  };
+}
+/* enable only the listed action buttons */
+function enable(root, keys) { $$('.controls [data-a]', root).forEach(b => { b.disabled = !keys.includes(b.dataset.a); b.classList.toggle('next-hint', keys.includes(b.dataset.a)); }); }
+
+/* =========================================================
+   Modules
+   ========================================================= */
+const Modules = {};
+
+/* ---- Choose one ---- */
+Modules.choose = {
+  init(root) {
+    this.root = root; this.votes = { 1: 0, 2: 0, 3: 0 };
+    $$('.pick', root).forEach(b => b.addEventListener('click', () => {
+      const k = b.dataset.k; this.votes[k]++; this.render();
+      b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump');
+      const [x, y] = stagePoint(b); burst(x, y - 60, 14, ['#F2A3A6', '#E0473F', '#F7E35C']);
+    }));
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+  },
+  render() {
+    const max = Math.max(...Object.values(this.votes));
+    $$('.pick', this.root).forEach(b => {
+      const v = this.votes[b.dataset.k], el = $('.votes', b);
+      el.textContent = v; el.classList.toggle('on', v > 0);
+      b.classList.toggle('top', max > 0 && v === max);
+    });
+  },
+  reset() { this.votes = { 1: 0, 2: 0, 3: 0 }; this.render(); }
+};
+
+/* ---- Video + Q&A ---- */
+Modules.video = {
+  init(root) {
+    const input = $('#vidFile'), vid = $('#vid'), empty = $('#vidEmpty');
+    let url = null;
+    input.addEventListener('change', () => {
+      const f = input.files && input.files[0]; if (!f) return;
+      if (!f.type.startsWith('video/')) { toast('Please choose a video file.'); return; }
+      if (url) URL.revokeObjectURL(url);
+      url = URL.createObjectURL(f); vid.src = url; vid.hidden = false; empty.hidden = true;
+    });
+    vid.addEventListener('error', () => { toast('This video format cannot play here. Try an MP4 file.'); vid.hidden = true; empty.hidden = false; });
+    this.vid = vid;
+    $$('.qcard', root).forEach(c => c.addEventListener('click', () => c.classList.toggle('open')));
+  },
+  leave() { safe(() => this.vid.pause()); }
+};
+
+/* ---- Ingredients ---- */
+const INGREDIENTS = [
+  { k: 'flour', name: 'Cake flour', amt: 190, unit: 'g', step: 'Step 2', icon: 'flour' },
+  { k: 'bp', name: 'Baking powder', amt: 1.5, unit: 'tsp', step: 'Step 2', icon: 'tin' },
+  { k: 'salt', name: 'Salt', amt: .25, unit: 'tsp', step: 'Step 2', icon: 'salt' },
+  { k: 'oil', name: 'Sunflower oil', amt: 120, unit: 'g', step: 'Step 4', icon: 'oil' },
+  { k: 'sugar', name: 'Sugar', amt: 110, unit: 'g', step: 'Step 3', icon: 'sugar' },
+  { k: 'egg', name: 'Eggs', amt: 3, unit: '', step: 'Step 3', icon: 'egg' },
+  { k: 'van', name: 'Vanilla extract', amt: 1, unit: 'tsp', step: 'Step 4', icon: 'vanilla' },
+  { k: 'milk', name: 'Milk', amt: 40, unit: 'g', step: 'Step 1', icon: 'milk' },
+  { k: 'honey', name: 'Honey', amt: 30, unit: 'g', step: 'Step 1', icon: 'honey' }
+];
+const ICONS = {
+  flour: '<path d="M14 20 L18 10 H46 L50 20 V56 Q50 60 46 60 H18 Q14 60 14 56Z" fill="#F6F1E7" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round"/><path d="M18 10 L24 18 L30 10 L36 18 L42 10" fill="none" stroke="#5A4A48" stroke-width="2.5"/><rect x="19" y="30" width="26" height="16" rx="3" fill="#7FB3E0"/><text x="32" y="42" font-size="9" font-weight="800" text-anchor="middle" fill="#fff" font-family="Nunito,sans-serif">FLOUR</text>',
+  tin: '<ellipse cx="32" cy="16" rx="16" ry="5" fill="#E9EDF0" stroke="#5A4A48" stroke-width="3"/><path d="M16 16 V52 Q32 60 48 52 V16" fill="#E0473F" stroke="#5A4A48" stroke-width="3"/><rect x="18" y="28" width="28" height="14" fill="#fff"/><text x="32" y="39" font-size="10" font-weight="900" text-anchor="middle" fill="#E0473F" font-family="Nunito,sans-serif">BP</text>',
+  salt: '<path d="M22 22 Q22 14 32 12 Q42 14 42 22Z" fill="#C9CED2" stroke="#5A4A48" stroke-width="3"/><circle cx="28" cy="17" r="1.6" fill="#5A4A48"/><circle cx="34" cy="16" r="1.6" fill="#5A4A48"/><path d="M20 22 H44 L46 56 Q32 62 18 56Z" fill="#fff" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round"/><path d="M20 40 H45 L46 56 Q32 62 18 56Z" fill="#EEF2F5"/>',
+  oil: '<rect x="27" y="6" width="10" height="8" rx="2" fill="#E0A45E" stroke="#5A4A48" stroke-width="2.5"/><path d="M26 14 H38 V22 Q48 28 48 38 V54 Q48 60 42 60 H22 Q16 60 16 54 V38 Q16 28 26 22Z" fill="#F7D35C" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="42" r="8" fill="#fff"/><path d="M32 36 v12 M26 42 h12" stroke="#F2B184" stroke-width="2.5"/>',
+  sugar: '<path d="M10 32 H54 Q52 56 32 56 Q12 56 10 32Z" fill="#7FB3E0" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round"/><rect x="18" y="20" width="10" height="10" rx="2" fill="#fff" stroke="#5A4A48" stroke-width="2"/><rect x="30" y="16" width="10" height="10" rx="2" fill="#fff" stroke="#5A4A48" stroke-width="2" transform="rotate(12 35 21)"/><rect x="38" y="24" width="9" height="9" rx="2" fill="#fff" stroke="#5A4A48" stroke-width="2"/>',
+  egg: '<ellipse cx="24" cy="36" rx="13" ry="17" fill="#FFF8EC" stroke="#5A4A48" stroke-width="3"/><ellipse cx="42" cy="40" rx="12" ry="15" fill="#F6E3C8" stroke="#5A4A48" stroke-width="3"/><path d="M19 28 q2 -6 6 -7" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>',
+  vanilla: '<rect x="26" y="6" width="12" height="10" rx="2" fill="#3B2A28"/><path d="M24 16 H40 V56 Q40 60 36 60 H28 Q24 60 24 56Z" fill="#6B4630" stroke="#5A4A48" stroke-width="3"/><rect x="24" y="30" width="16" height="16" fill="#F6F1E7"/><path d="M32 33 q4 4 0 10 q-4 -6 0 -10z" fill="#F7D35C"/>',
+  milk: '<path d="M18 10 H46 L42 58 Q32 62 22 58Z" fill="#fff" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round"/><path d="M19.5 24 H44.5 L42 58 Q32 62 22 58Z" fill="#F3F6FA"/><path d="M24 30 v20" stroke="#fff" stroke-width="3" stroke-linecap="round"/>',
+  honey: '<rect x="18" y="8" width="28" height="10" rx="3" fill="#E0A45E" stroke="#5A4A48" stroke-width="3"/><path d="M16 18 H48 V52 Q48 60 40 60 H24 Q16 60 16 52Z" fill="#F2B33D" stroke="#5A4A48" stroke-width="3"/><path d="M16 30 Q22 36 26 30 Q30 38 34 30 Q38 36 42 30 Q46 34 48 30" fill="none" stroke="#fff" stroke-width="2.5"/>'
+};
+function fmtAmt(v) {
+  const whole = Math.floor(v + 1e-9), frac = v - whole;
+  const map = { 0: '', .25: '¼', .5: '½', .75: '¾', .125: '⅛', .375: '⅜' };
+  const key = Object.keys(map).find(k => Math.abs(frac - Number(k)) < .01);
+  if (key !== undefined) return (whole || !map[key] ? whole : '') + map[key] || '0';
+  return String(Math.round(v * 10) / 10);
+}
+Modules.ingredients = {
+  init(root) {
+    this.root = root; this.factor = 1; this.ok = new Set();
+    const grid = $('#ingrGrid');
+    grid.innerHTML = INGREDIENTS.map((g, i) => `<button class="ing" data-in="up" style="--d:${150 + i * 70}" data-k="${g.k}">
+      <svg class="icon" viewBox="0 0 64 64">${ICONS[g.icon]}</svg>
+      <span><div class="nm">${g.name}</div><div class="amt" data-amt></div></span>
+      <span class="use">${g.step}</span><span class="tick"></span></button>`).join('');
+    grid.addEventListener('click', e => {
+      const b = e.target.closest('.ing'); if (!b) return;
+      const k = b.dataset.k;
+      this.ok.has(k) ? this.ok.delete(k) : this.ok.add(k);
+      b.classList.toggle('ok', this.ok.has(k));
+      b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash');
+      this.count();
+      if (this.ok.size === INGREDIENTS.length) { const [x, y] = stagePoint($('#readyCount')); burst(x, y, 30); }
+    });
+    $$('.seg button', root).forEach(b => b.addEventListener('click', () => {
+      this.factor = Number(b.dataset.f);
+      $$('.seg button', root).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      this.render(true);
+    }));
+    this.render(false); this.count();
+  },
+  render(anim) {
+    INGREDIENTS.forEach(g => {
+      const el = $(`.ing[data-k="${g.k}"] [data-amt]`, this.root);
+      el.textContent = fmtAmt(g.amt * this.factor) + (g.unit ? ' ' + g.unit : '');
+      if (anim) el.animate([{ transform: 'scale(1.35)', color: '#5B30E6' }, { transform: 'none' }], { duration: 450, easing: 'ease-out' });
+    });
+  },
+  count() { const n = this.ok.size; $('#readyCount').textContent = n === INGREDIENTS.length ? 'All ready!' : `Ready ${n} / ${INGREDIENTS.length}`; }
+};
+
+/* ---- Kitchen words ---- */
+const VERBS = [
+  { w: 'Mix', s: 'Mix milk and honey.', st: 'Step 1', ico: '<ellipse cx="55" cy="58" rx="40" ry="10" fill="#B9C3CB" stroke="#5A4A48" stroke-width="3"/><path d="M15 58 Q55 70 95 58 Q92 92 55 92 Q18 92 15 58Z" fill="#E4EAEE" stroke="#5A4A48" stroke-width="3"/><path d="M40 56 Q55 48 70 56 Q55 64 40 56" fill="none" stroke="#F2B33D" stroke-width="4"/><path d="M70 10 L58 56" stroke="#E0A45E" stroke-width="7" stroke-linecap="round"/>' },
+  { w: 'Sieve', s: 'Sieve the flour.', st: 'Step 2', ico: '<ellipse cx="50" cy="40" rx="34" ry="10" fill="#E9EDF0" stroke="#5A4A48" stroke-width="3"/><path d="M16 40 Q50 84 84 40" fill="#E9EDF0" stroke="#5A4A48" stroke-width="3"/><path d="M84 40 H104" stroke="#5A4A48" stroke-width="6" stroke-linecap="round"/><g fill="#fff" stroke="#C9CED2"><circle cx="44" cy="76" r="3"/><circle cx="56" cy="84" r="3"/><circle cx="50" cy="94" r="3"/></g>' },
+  { w: 'Whisk', s: 'Whisk the eggs.', st: 'Step 3', ico: '<path d="M55 6 V40" stroke="#E0A45E" stroke-width="8" stroke-linecap="round"/><path d="M55 40 Q30 70 55 94 Q80 70 55 40 M55 40 Q42 70 55 94 Q68 70 55 40" fill="none" stroke="#8A9399" stroke-width="4"/>' },
+  { w: 'Add', s: 'Add the oil slowly.', st: 'Step 4', ico: '<path d="M30 10 H52 V22 Q66 30 66 44 V80 Q66 88 58 88 H24 Q16 88 16 80 V44 Q16 30 30 22Z" fill="#F7D35C" stroke="#5A4A48" stroke-width="3" transform="rotate(-35 40 50)"/><path d="M78 60 Q84 74 80 94" stroke="#F7D35C" stroke-width="6" fill="none" stroke-linecap="round"/>' },
+  { w: 'Spoon', s: 'Spoon the batter into cases.', st: 'Step 6', ico: '<path d="M30 70 H80 L74 96 H36Z" fill="#F2A3A6" stroke="#5A4A48" stroke-width="3"/><path d="M33 72 Q55 58 77 72" fill="#FBEEC4" stroke="#5A4A48" stroke-width="3"/><ellipse cx="74" cy="40" rx="14" ry="9" fill="#C9CED2" stroke="#5A4A48" stroke-width="3" transform="rotate(-30 74 40)"/><path d="M84 32 L104 10" stroke="#8A9399" stroke-width="6" stroke-linecap="round"/>' },
+  { w: 'Bake', s: 'Bake at 180°C for 16 minutes.', st: 'Step 6', ico: '<rect x="12" y="10" width="86" height="84" rx="10" fill="#F4F1EE" stroke="#5A4A48" stroke-width="3"/><rect x="22" y="32" width="66" height="52" rx="6" fill="#FFB65C" stroke="#5A4A48" stroke-width="3"/><circle cx="30" cy="21" r="4" fill="#5A4A48"/><circle cx="44" cy="21" r="4" fill="#5A4A48"/><path d="M34 70 Q40 56 46 70 M58 70 Q64 56 70 70" fill="#FBEEC4" stroke="#5A4A48" stroke-width="2.5"/>' }
+];
+Modules.verbs = {
+  init(root) {
+    $('#verbs').innerHTML = VERBS.map((v, i) => `<button class="vcard" data-in="up" style="--d:${200 + i * 90}"><div class="in">
+      <div class="f"><svg class="ico" viewBox="0 0 110 100">${v.ico}</svg><div class="word">${v.w}</div></div>
+      <div class="b"><div class="stp">${v.st}</div><div class="snt">${v.s.replace(v.w, `<span class="v">${v.w}</span>`)}</div></div></div></button>`).join('');
+    $('#verbs').addEventListener('click', e => { const c = e.target.closest('.vcard'); c && c.classList.toggle('open'); });
+    this.root = root;
+  },
+  reset() { $$('.vcard', this.root).forEach(c => c.classList.remove('open')); }
+};
+
+/* ---- Step 1: microwave ---- */
+Modules.step1 = {
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    svg.innerHTML = `
+      <rect x="20" y="30" width="500" height="300" rx="26" fill="#F4F1EE" stroke="#5A4A48" stroke-width="4"/>
+      <rect x="44" y="54" width="320" height="252" rx="16" fill="#3B3330" class="win" stroke="#5A4A48" stroke-width="4"/>
+      <rect x="44" y="54" width="320" height="252" rx="16" fill="#FFD27A" class="glow" opacity="0"/>
+      <ellipse cx="204" cy="270" rx="120" ry="18" fill="#9AA5AD" class="plate" stroke="#5A4A48" stroke-width="3"/>
+      <g class="turn">
+        <g class="steam" transform="translate(0 0)"><path d="M170 160 q-10 -20 0 -40 q10 -20 0 -40" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M205 160 q-10 -20 0 -40 q10 -20 0 -40" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/><path d="M240 160 q-10 -20 0 -40 q10 -20 0 -40" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/></g>
+        ${bowl(204, 196, 200, { content: '<ellipse class="liq" cx="204" cy="214" rx="0" ry="0" fill="#fff"/><ellipse class="hon" cx="204" cy="208" rx="0" ry="0" fill="#F2B33D"/><path class="swirl" d="M170 206 Q204 196 238 206" fill="none" stroke="#F7D35C" stroke-width="5" opacity="0"/>' })}
+      </g>
+      <rect x="384" y="62" width="114" height="54" rx="10" fill="#2A2422"/>
+      <text x="441" y="100" text-anchor="middle" class="disp timer" font-size="32" fill="#FF9D4D">0:30</text>
+      <g fill="#E3DAD3" stroke="#5A4A48" stroke-width="2">${[0, 1, 2].map(r => [0, 1, 2].map(c => `<rect x="${392 + c * 34}" y="${130 + r * 26}" width="28" height="18" rx="5"/>`).join('')).join('')}</g>
+      <g class="thermo" transform="translate(472 214)">
+        <rect x="-11" y="0" width="22" height="84" rx="11" fill="#fff" stroke="#5A4A48" stroke-width="3"/>
+        <circle cx="0" cy="92" r="15" fill="#E0473F" stroke="#5A4A48" stroke-width="3"/>
+        <rect class="merc" x="-5" y="70" width="10" height="20" fill="#E0473F"/>
+        <text class="temp timer" x="-20" y="50" text-anchor="end" font-size="20" fill="#5A4A48">20°C</text>
+      </g>`;
+    this.liq = $('.liq', svg); this.hon = $('.hon', svg); this.swirl = $('.swirl', svg);
+    $('.controls', root).addEventListener('click', e => { const b = e.target.closest('[data-a]'); b && !b.disabled && this.act(b.dataset.a); });
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.reset();
+  },
+  setTemp(t) { $('.merc', this.svg).setAttribute('y', 90 - (t - 15) * 1.3); $('.merc', this.svg).setAttribute('height', (t - 15) * 1.3); $('.temp', this.svg).textContent = Math.round(t) + '°C'; },
+  act(a) {
+    const s = this.svg;
+    if (a === 'milk') {
+      this.liq.animate([{ rx: 0, ry: 0 }, { rx: 80, ry: 12 }], { duration: 700, fill: 'forwards', easing: 'ease-out' });
+      safe(() => { this.liq.setAttribute('rx', 80); this.liq.setAttribute('ry', 12); });
+      say(this.root, 'Milk: 40 g'); this.state.milk = true; this.tasks.done('milk');
+    }
+    if (a === 'honey') {
+      this.hon.setAttribute('rx', 34); this.hon.setAttribute('ry', 6);
+      this.hon.animate([{ opacity: 0, transform: 'translateY(-60px)' }, { opacity: 1, transform: 'none' }], { duration: 600, easing: 'ease-out' });
+      say(this.root, 'Honey: 30 g'); this.state.honey = true; this.tasks.done('honey');
+    }
+    if (this.state.milk && this.state.honey && !this.state.heated && a !== 'heat') enable(this.root, ['heat']);
+    else if (!this.state.heated && a !== 'heat') enable(this.root, ['milk', 'honey'].filter(k => !this.state[k]));
+    if (a === 'heat') {
+      enable(this.root, []);
+      $('.glow', s).style.transition = 'opacity .4s'; $('.glow', s).setAttribute('opacity', .55);
+      $('.turn', s).animate([{ transform: 'translateX(0)' }, { transform: 'translateX(22px)' }, { transform: 'translateX(0)' }, { transform: 'translateX(-22px)' }, { transform: 'translateX(0)' }], { duration: 2400, iterations: Infinity });
+      this.timer = countdown(30, (left, p) => { $('.disp', s).textContent = mmss(left); this.setTemp(20 + p * 50); }, () => {
+        $('.glow', s).setAttribute('opacity', 0); $('.turn', s).getAnimations().forEach(x => x.cancel());
+        $('.steam', s).style.display = ''; $('.disp', s).textContent = 'END';
+        say(this.root, 'Ding! Hot milk and honey.', 'good'); this.state.heated = true; this.tasks.done('heat'); enable(this.root, ['stir']);
+      });
+    }
+    if (a === 'stir') {
+      this.swirl.setAttribute('opacity', 1);
+      this.swirl.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(360deg)' }], { duration: 900, iterations: 2 });
+      this.swirl.style.transformBox = 'fill-box'; this.swirl.style.transformOrigin = 'center';
+      setTimeout(() => { this.liq.setAttribute('fill', '#F7DE9A'); this.hon.setAttribute('rx', 0); this.swirl.setAttribute('opacity', 0); }, 1200);
+      say(this.root, 'Stir, stir, stir!'); this.tasks.done('stir'); enable(this.root, ['cool']);
+    }
+    if (a === 'cool') {
+      enable(this.root, []);
+      const start = performance.now();
+      const step = now => { const p = clamp((now - start) / 2500, 0, 1); this.setTemp(lerp(70, 32, p)); $('.steam', s).style.opacity = 1 - p; if (p < 1) this.raf = requestAnimationFrame(step); else { $('.steam', s).style.display = 'none'; say(this.root, 'Ready! Warm, not hot.', 'good', 0); this.tasks.done('cool'); const [x, y] = stagePoint(s); burst(x, y, 24); } };
+      this.raf = requestAnimationFrame(step);
+    }
+  },
+  reset() {
+    this.timer && this.timer.cancel(); cancelAnimationFrame(this.raf);
+    this.state = {}; const s = this.svg;
+    this.liq.setAttribute('rx', 0); this.liq.setAttribute('ry', 0); this.liq.setAttribute('fill', '#fff'); this.liq.getAnimations().forEach(a => a.cancel());
+    this.hon.setAttribute('rx', 0); this.hon.setAttribute('ry', 0); this.swirl.setAttribute('opacity', 0);
+    $('.glow', s).setAttribute('opacity', 0); $('.turn', s).getAnimations().forEach(x => x.cancel());
+    $('.steam', s).style.display = 'none'; $('.steam', s).style.opacity = 1; $('.disp', s).textContent = '0:30'; this.setTemp(20);
+    $('.say', this.root).classList.remove('show');
+    this.tasks.reset(); enable(this.root, ['milk', 'honey']);
+  },
+  leave() { /* keep state; timers continue */ }
+};
+
+/* ---- Step 2: sieve ---- */
+Modules.step2 = {
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    svg.innerHTML = `
+      ${bowl(270, 250, 330, { content: '<ellipse class="pile" cx="270" cy="262" rx="0" ry="0" fill="#FFFDF8" stroke="#E8E0D4" stroke-width="2"/>' })}
+      <g class="particles"></g>
+      <g class="sieve">
+        <path d="M380 108 L500 88" stroke="#5A4A48" stroke-width="14" stroke-linecap="round"/><path d="M380 108 L500 88" stroke="#B9C3CB" stroke-width="7" stroke-linecap="round"/>
+        <ellipse cx="270" cy="110" rx="118" ry="26" fill="#DDE3E8" stroke="#5A4A48" stroke-width="4"/>
+        <path d="M152 110 Q270 230 388 110" fill="url(#mesh)" stroke="#5A4A48" stroke-width="4"/>
+        <g class="in-sieve">
+          <ellipse class="sf" cx="270" cy="124" rx="0" ry="0" fill="#FFFDF8" stroke="#E8E0D4" stroke-width="2"/>
+          <ellipse class="sb" cx="240" cy="118" rx="0" ry="0" fill="#F5F0FF" stroke="#DCD3F2" stroke-width="2"/>
+          <g class="ss" opacity="0"><circle cx="300" cy="116" r="3" fill="#fff" stroke="#C9CED2"/><circle cx="308" cy="120" r="3" fill="#fff" stroke="#C9CED2"/><circle cx="296" cy="122" r="3" fill="#fff" stroke="#C9CED2"/><circle cx="304" cy="112" r="3" fill="#fff" stroke="#C9CED2"/></g>
+        </g>
+      </g>
+      <defs><pattern id="mesh" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#EEF2F5"/><path d="M0 0L8 8M8 0L0 8" stroke="#A9B3BA" stroke-width="1"/></pattern></defs>`;
+    $('.controls', root).addEventListener('click', e => { const b = e.target.closest('[data-a]'); b && !b.disabled && this.act(b.dataset.a); });
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.reset();
+  },
+  drop(sel, rx, ry, label) {
+    const el = $(sel, this.svg);
+    if (el.tagName === 'g') el.setAttribute('opacity', 1); else { el.setAttribute('rx', rx); el.setAttribute('ry', ry); }
+    el.animate([{ transform: 'translateY(-90px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 500, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+    say(this.root, label);
+  },
+  act(a) {
+    if (a === 'flour') this.drop('.sf', 80, 16, 'Cake flour: 190 g');
+    if (a === 'bp') this.drop('.sb', 30, 7, 'Baking powder: 1½ tsp');
+    if (a === 'salt') this.drop('.ss', 0, 0, 'Salt: ¼ tsp');
+    if (['flour', 'bp', 'salt'].includes(a)) {
+      this.state[a] = true; this.tasks.done(a);
+      const left = ['flour', 'bp', 'salt'].filter(k => !this.state[k]);
+      enable(this.root, left.length ? left : ['sieve']);
+      if (!left.length) say(this.root, 'Now shake the sieve!', '', 2500);
+    }
+    if (a === 'sieve') this.shake();
+  },
+  shake() {
+    if (this.shaking) return; this.shaking = true;
+    const sv = $('.sieve', this.svg);
+    sv.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-14px) rotate(-1deg)' }, { transform: 'translateX(14px) rotate(1deg)' }, { transform: 'translateX(-8px)' }, { transform: 'none' }], { duration: 450 });
+    const g = $('.particles', this.svg);
+    for (let i = 0; i < 28; i++) {
+      const x = 210 + Math.random() * 120, c = svgEl('circle', { cx: x, cy: 150, r: 2 + Math.random() * 2.5, fill: '#fff', stroke: '#DDD3C6', 'stroke-width': 1 }, g);
+      const an = c.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: `translateY(${100 + Math.random() * 20}px)`, opacity: .9 }], { duration: 500 + Math.random() * 400, delay: Math.random() * 300, easing: 'ease-in' });
+      an.onfinish = () => c.remove();
+    }
+    this.n = Math.min(this.n + 1, 6); const p = this.n / 6;
+    $('.sf', this.svg).setAttribute('rx', 80 * (1 - p)); $('.sf', this.svg).setAttribute('ry', 16 * (1 - p));
+    $('.sb', this.svg).setAttribute('rx', 30 * (1 - p)); $('.sb', this.svg).setAttribute('ry', 7 * (1 - p));
+    $('.ss', this.svg).setAttribute('opacity', 1 - p);
+    const pile = $('.pile', this.svg); pile.setAttribute('rx', 120 * p); pile.setAttribute('ry', 22 * p);
+    $('.sieve-meter', this.root).style.width = p * 100 + '%';
+    setTimeout(() => { this.shaking = false; }, 380);
+    if (this.n < 6) say(this.root, ['Shake!', 'Shake, shake!', 'Keep going!', 'Almost!', 'One more!'][this.n - 1] || 'Shake!', '', 900);
+    else { enable(this.root, []); this.tasks.done('sieve'); say(this.root, 'Light and fluffy, no lumps!', 'good', 0); const [x, y] = stagePoint(this.svg); burst(x, y, 24); }
+  },
+  reset() {
+    this.state = {}; this.n = 0; this.shaking = false;
+    ['.sf', '.sb', '.pile'].forEach(s => { $(s, this.svg).setAttribute('rx', 0); $(s, this.svg).setAttribute('ry', 0); });
+    $('.ss', this.svg).setAttribute('opacity', 0); $('.particles', this.svg).innerHTML = '';
+    $('.sieve-meter', this.root).style.width = '0'; $('.say', this.root).classList.remove('show');
+    this.tasks.reset(); enable(this.root, ['flour', 'bp', 'salt']);
+  }
+};
+
+/* ---- Step 3: whisk ---- */
+Modules.step3 = {
+  EGG: '#F4C23F', PALE: '#F8DE86', CREAM: '#FCF0CC',
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    svg.innerHTML = `
+      <text class="clock timer" x="40" y="70" font-size="44" fill="#E0473F">2:00</text>
+      <text class="clockLbl" x="42" y="96" font-size="16" font-weight="800" fill="#8B5A48" font-family="Nunito,sans-serif">HIGH SPEED</text>
+      ${bowl(270, 230, 320, { content: `<ellipse class="bat" cx="270" cy="244" rx="0" ry="0" fill="#F4C23F"/>
+        <g class="yolks" opacity="0"><ellipse cx="236" cy="242" rx="38" ry="12" fill="#fff" opacity=".85"/><ellipse cx="300" cy="246" rx="40" ry="12" fill="#fff" opacity=".85"/><circle cx="232" cy="240" r="13" fill="#F4A81F" stroke="#D88B12" stroke-width="2"/><circle cx="276" cy="248" r="13" fill="#F4A81F" stroke="#D88B12" stroke-width="2"/><circle cx="312" cy="240" r="13" fill="#F4A81F" stroke="#D88B12" stroke-width="2"/></g>
+        <g class="sugar" opacity="0">${Array.from({ length: 22 }, (_, i) => `<rect x="${200 + (i * 37) % 140}" y="${236 + (i * 13) % 16}" width="5" height="5" fill="#fff" stroke="#DDD" stroke-width=".8"/>`).join('')}</g>`, mid: mixer(270, 120) })}`;
+    this.mixer = $('.mixer', svg); this.bat = $('.bat', svg);
+    $('.controls', root).addEventListener('click', e => { const b = e.target.closest('[data-a]'); b && !b.disabled && this.act(b.dataset.a); });
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.reset();
+  },
+  whisk(on) {
+    this.mixer.classList.toggle('on', on);
+    this.mixer.style.transition = 'transform .5s'; this.mixer.style.transform = on ? 'translateY(52px)' : 'translateY(-30px)';
+    this.bat.classList.toggle('wob', on);
+  },
+  act(a) {
+    const s = this.svg;
+    if (a === 'eggs') {
+      $('.yolks', s).setAttribute('opacity', 1);
+      $$('.yolks circle', s).forEach((c, i) => c.animate([{ transform: 'translateY(-120px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 500, delay: i * 250, fill: 'backwards', easing: 'cubic-bezier(.3,1.4,.5,1)' }));
+      say(this.root, 'Crack! Crack! Crack!'); this.tasks.done('eggs'); enable(this.root, ['whisk1']);
+    }
+    if (a === 'whisk1') {
+      enable(this.root, []); this.whisk(true); $('.clock', s).textContent = '2:00';
+      this.bat.setAttribute('rx', 130); this.bat.setAttribute('ry', 20);
+      this.timer = countdown(120, (left, p) => {
+        $('.clock', s).textContent = mmss(left);
+        $('.yolks', s).setAttribute('opacity', 1 - Math.min(1, p * 2));
+        this.bat.setAttribute('fill', mix(this.EGG, this.PALE, p));
+      }, () => { this.whisk(false); this.tasks.done('whisk1'); say(this.root, 'Foamy eggs! Now add sugar.', 'good'); enable(this.root, ['sugar']); });
+    }
+    if (a === 'sugar') {
+      $('.sugar', s).setAttribute('opacity', 1);
+      $('.sugar', s).animate([{ transform: 'translateY(-100px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 600, easing: 'ease-out' });
+      say(this.root, 'Sugar: 110 g'); this.tasks.done('sugar'); enable(this.root, ['whisk2']);
+      $('.clock', s).textContent = '3:00';
+    }
+    if (a === 'whisk2') {
+      enable(this.root, []); this.whisk(true);
+      this.timer = countdown(180, (left, p) => {
+        $('.clock', s).textContent = mmss(left);
+        $('.sugar', s).setAttribute('opacity', 1 - Math.min(1, p * 2));
+        this.bat.setAttribute('fill', mix(this.PALE, this.CREAM, p));
+        this.bat.setAttribute('cy', 244 - p * 14); this.bat.setAttribute('rx', 130 + p * 10);
+      }, () => { this.whisk(false); this.tasks.done('whisk2'); say(this.root, 'Pale and creamy!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24); });
+    }
+  },
+  reset() {
+    this.timer && this.timer.cancel(); this.whisk(false);
+    const s = this.svg; this.bat.setAttribute('rx', 0); this.bat.setAttribute('ry', 0); this.bat.setAttribute('cy', 244); this.bat.setAttribute('fill', this.EGG);
+    $('.yolks', s).setAttribute('opacity', 0); $('.sugar', s).setAttribute('opacity', 0); $('.clock', s).textContent = '2:00';
+    $('.say', this.root).classList.remove('show'); this.tasks.reset(); enable(this.root, ['eggs']);
+  }
+};
+
+/* ---- Step 4-1: oil ---- */
+Modules.step41 = {
+  NEED: 120,
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    svg.innerHTML = `
+      <text class="clock timer" x="30" y="120" font-size="40" fill="#E0473F"></text>
+      <g transform="translate(170 40)"><rect width="200" height="18" rx="9" fill="#F6E2D2"/><rect class="oilbar" width="0" height="18" rx="9" fill="#F7C64A"/>
+        <text class="oiltxt timer" x="0" y="-8" font-size="20" fill="#5A4A48">Oil 0 / 120 g</text></g>
+      ${bowl(250, 200, 320, { content: '<ellipse class="bat" cx="250" cy="208" rx="140" ry="22" fill="#FCF0CC"/><path class="ring" d="M120 210 Q250 236 380 210" fill="none" stroke="#F7C64A" stroke-width="0" stroke-linecap="round" opacity=".9"/>', mid: mixer(250, -40) })}
+      <path class="stream" d="M436 118 Q420 150 392 196" fill="none" stroke="#F7C64A" stroke-width="0" stroke-linecap="round"/>
+      <g class="bottle" transform="translate(458 96) rotate(-125)">
+        <rect x="-8" y="-62" width="16" height="12" rx="3" fill="#E0A45E" stroke="#5A4A48" stroke-width="3"/>
+        <path d="M-10 -50 H10 V-38 Q28 -28 28 -10 V40 Q28 50 18 50 H-18 Q-28 50 -28 40 V-10 Q-28 -28 -10 -38Z" fill="#F7D35C" stroke="#5A4A48" stroke-width="3.5" stroke-linejoin="round"/>
+        <rect x="-20" y="0" width="40" height="22" rx="4" fill="#fff"/><text x="0" y="16" font-size="12" font-weight="900" text-anchor="middle" fill="#E0A45E" font-family="Nunito,sans-serif">OIL</text>
+      </g>
+      `;
+    this.mixer = $('.mixer', svg); this.mixer.style.opacity = 0;
+    const btn = $('[data-a="pour"]', root), range = $('#pourSpeed', root);
+    const start = e => { if (btn.disabled) return; e.preventDefault(); this.pouring = true; this.loop(); };
+    const stop = () => { this.pouring = false; };
+    btn.addEventListener('pointerdown', start); btn.addEventListener('pointerup', stop); btn.addEventListener('pointerleave', stop); btn.addEventListener('pointercancel', stop);
+    btn.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.repeat) start(e); });
+    btn.addEventListener('keyup', e => { if (e.key === 'Enter') stop(); });
+    range.addEventListener('change', () => range.blur());
+    $('[data-a="whisk"]', root).addEventListener('click', () => this.whisk());
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.range = range; this.reset();
+  },
+  loop() {
+    let last = performance.now();
+    const s = this.svg, stream = $('.stream', s), bottle = $('.bottle', s);
+    const tick = now => {
+      const dt = (now - last) / 1000; last = now;
+      const sp = Number(this.range.value);
+      if (!this.pouring || this.amount >= this.NEED) {
+        stream.setAttribute('stroke-width', 0); bottle.setAttribute('transform', 'translate(458 96) rotate(-125)'); return;
+      }
+      bottle.setAttribute('transform', `translate(458 96) rotate(${-125 - sp * 3})`);
+      stream.setAttribute('stroke-width', 2 + sp * 1.4);
+      if (sp > 5) { say(this.root, 'Too fast! Pour slowly from the side.', 'warn', 1200); $('.bat', s).classList.add('wob'); }
+      else {
+        $('.bat', s).classList.remove('wob');
+        this.amount = Math.min(this.NEED, this.amount + dt * sp * 9);
+        this.update();
+        if (this.amount >= this.NEED) { this.pouring = false; this.tasks.done('pour'); say(this.root, '120 g. Now whisk!', 'good'); enable(this.root, ['whisk']); $('[data-a="pour"]', this.root).disabled = true; }
+      }
+      this.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  },
+  update() {
+    const p = this.amount / this.NEED, s = this.svg;
+    $('.oilbar', s).setAttribute('width', 200 * p);
+    $('.oiltxt', s).textContent = `Oil ${Math.round(this.amount)} / ${this.NEED} g`;
+    $('.ring', s).setAttribute('stroke-width', 3 + p * 12);
+  },
+  whisk() {
+    enable(this.root, []); const s = this.svg;
+    this.mixer.style.opacity = 1; this.mixer.classList.add('on'); this.mixer.style.transition = 'transform .5s'; this.mixer.style.transform = 'translateY(120px)';
+    $('.bat', s).classList.add('wob');
+    this.timer = countdown(180, (left, p) => {
+      $('.clock', s).textContent = mmss(left);
+      $('.ring', s).setAttribute('opacity', .9 * (1 - p));
+      $('.bat', s).setAttribute('fill', mix('#FCF0CC', '#FBE7A6', p));
+    }, () => {
+      this.mixer.classList.remove('on'); this.mixer.style.transform = 'none'; $('.bat', s).classList.remove('wob');
+      this.tasks.done('whisk'); say(this.root, 'Smooth and shiny!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24);
+    });
+  },
+  reset() {
+    this.timer && this.timer.cancel(); cancelAnimationFrame(this.raf); this.pouring = false; this.amount = 0;
+    const s = this.svg; this.update(); $('.ring', s).setAttribute('opacity', .9); $('.ring', s).setAttribute('stroke-width', 0);
+    $('.bat', s).setAttribute('fill', '#FCF0CC'); $('.bat', s).classList.remove('wob');
+    this.mixer.classList.remove('on'); this.mixer.style.transform = 'none'; this.mixer.style.opacity = 0;
+    $('.clock', s).textContent = ''; this.range.value = 3;
+    $('.say', this.root).classList.remove('show'); this.tasks.reset(); enable(this.root, ['pour']);
+  },
+  leave() { this.pouring = false; }
+};
+
+/* ---- Step 4-2: vanilla + honey milk, drag to mix ---- */
+Modules.step42 = {
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    svg.innerHTML = `
+      ${bowl(270, 200, 330, { content: '<ellipse class="bat" cx="270" cy="208" rx="145" ry="23" fill="#FBE7A6"/><path class="van" d="M220 206 Q250 196 270 210 Q290 222 320 206" fill="none" stroke="#6B4630" stroke-width="0" stroke-linecap="round"/><path class="hm" d="M160 212 Q270 232 380 212" fill="none" stroke="#F2B33D" stroke-width="0" stroke-linecap="round" opacity=".85"/>' })}
+      <g class="vbottle" transform="translate(60 120)"><rect x="-8" y="-46" width="16" height="12" rx="2" fill="#3B2A28"/><path d="M-14 -34 H14 V30 Q14 36 8 36 H-8 Q-14 36 -14 30Z" fill="#6B4630" stroke="#5A4A48" stroke-width="3"/><rect x="-14" y="-12" width="28" height="22" fill="#F6F1E7"/><text x="0" y="4" text-anchor="middle" font-size="8" font-weight="900" font-family="Nunito,sans-serif" fill="#6B4630">VANILLA</text></g>
+      <g class="hcup" transform="translate(478 120)"><path d="M-34 -14 H34 Q32 30 0 30 Q-32 30 -34 -14Z" fill="#E4EAEE" stroke="#5A4A48" stroke-width="3"/><ellipse cx="0" cy="-14" rx="34" ry="8" fill="#F7DE9A" stroke="#5A4A48" stroke-width="3"/><text x="0" y="52" text-anchor="middle" font-size="13" font-weight="900" font-family="Nunito,sans-serif" fill="#8B5A48">HONEY MILK</text></g>
+      <path class="drop" d="M0 0" fill="#6B4630"/>
+      <text class="hint" x="270" y="355" text-anchor="middle" font-size="20" font-weight="900" font-family="Nunito,sans-serif" fill="#8B5A48" opacity="0">Drag around the bowl to mix</text>
+      ${spatula()}`;
+    $('.controls', root).addEventListener('click', e => { const b = e.target.closest('[data-a]'); b && !b.disabled && this.act(b.dataset.a); });
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.stir = stirrer(svg, {
+      cx: 270, cy: 220, rx: 165, ry: 70, spoon: $('.spoon', svg), need: 2600,
+      canStir: () => this.state.vanilla && this.state.milk && !this.state.mixed,
+      onProgress: p => this.mixP(p)
+    });
+    this.reset();
+  },
+  act(a) {
+    const s = this.svg;
+    if (a === 'vanilla') {
+      const b = $('.vbottle', s);
+      b.animate([{ transform: 'translate(60px,120px)' }, { transform: 'translate(200px,110px) rotate(120deg)' }, { transform: 'translate(200px,110px) rotate(120deg)' }, { transform: 'translate(60px,120px)' }], { duration: 1500, easing: 'ease-in-out' });
+      setTimeout(() => { $('.van', s).setAttribute('stroke-width', 9); $('.van', s).animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 }); }, 700);
+      say(this.root, 'Vanilla: 1 tsp. Smells good!'); this.state.vanilla = true; this.tasks.done('vanilla');
+    }
+    if (a === 'milk') {
+      const c = $('.hcup', s);
+      c.animate([{ transform: 'translate(478px,120px)' }, { transform: 'translate(380px,110px) rotate(-70deg)' }, { transform: 'translate(380px,110px) rotate(-70deg)' }, { transform: 'translate(478px,120px)' }], { duration: 1500, easing: 'ease-in-out' });
+      setTimeout(() => { $('.hm', s).setAttribute('stroke-width', 14); $('.hm', s).animate([{ opacity: 0 }, { opacity: .85 }], { duration: 400 }); }, 700);
+      say(this.root, 'Honey milk from Step 1'); this.state.milk = true; this.tasks.done('milk');
+    }
+    const left = ['vanilla', 'milk'].filter(k => !this.state[k]); enable(this.root, left);
+    if (!left.length) setTimeout(() => { $('.hint', s).setAttribute('opacity', 1); say(this.root, 'Mix with the spatula!', '', 2400); }, 1500);
+  },
+  mixP(p) {
+    const s = this.svg;
+    $('.mix-meter', this.root).style.width = p * 100 + '%';
+    $('.van', s).setAttribute('opacity', 1 - p); $('.hm', s).setAttribute('opacity', .85 * (1 - p));
+    $('.bat', s).setAttribute('fill', mix('#FBE7A6', '#F3D58C', p));
+    if (p >= 1 && !this.state.mixed) { this.state.mixed = true; this.tasks.done('mix'); $('.hint', s).setAttribute('opacity', 0); say(this.root, 'All the same color. Great mixing!', 'good', 0); const [x, y] = stagePoint(s); burst(x, y, 24); }
+  },
+  reset() {
+    this.state = {}; this.stir.reset(); const s = this.svg;
+    $('.van', s).setAttribute('stroke-width', 0); $('.van', s).setAttribute('opacity', 1);
+    $('.hm', s).setAttribute('stroke-width', 0); $('.hm', s).setAttribute('opacity', .85);
+    $('.bat', s).setAttribute('fill', '#FBE7A6'); $('.hint', s).setAttribute('opacity', 0);
+    $('.mix-meter', this.root).style.width = '0'; $('.say', this.root).classList.remove('show');
+    this.tasks.reset(); enable(this.root, ['vanilla', 'milk']);
+  }
+};
+
+/* ---- Step 5: add flour in 4 parts, fold gently ---- */
+Modules.step5 = {
+  PARTS: 4,
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    svg.innerHTML = `
+      ${bowl(270, 200, 330, { content: '<ellipse class="bat" cx="270" cy="208" rx="145" ry="23" fill="#F3D58C"/><g class="mound"></g>' })}
+      <g class="bag" transform="translate(470 70)"><path d="M-30 -20 L-24 -40 H24 L30 -20 V40 Q30 46 24 46 H-24 Q-30 46 -30 40Z" fill="#F6F1E7" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round"/><rect x="-20" y="-6" width="40" height="22" rx="3" fill="#7FB3E0"/><text x="0" y="10" font-size="11" font-weight="900" text-anchor="middle" fill="#fff" font-family="Nunito,sans-serif">FLOUR</text></g>
+      <g class="dots" transform="translate(40 60)">${Array.from({ length: 4 }, (_, i) => `<circle cx="${i * 30}" cy="0" r="10" fill="#fff" stroke="#C9A08A" stroke-width="3"/>`).join('')}</g>
+      <text x="40" y="36" font-size="16" font-weight="900" font-family="Nunito,sans-serif" fill="#8B5A48">FLOUR PARTS</text>
+      <text class="hint" x="270" y="355" text-anchor="middle" font-size="20" font-weight="900" font-family="Nunito,sans-serif" fill="#8B5A48" opacity="0">Drag gently around the bowl</text>
+      ${spatula()}`;
+    $('[data-a="add"]', root).addEventListener('click', () => this.add());
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.stir = stirrer(svg, { cx: 270, cy: 220, rx: 165, ry: 70, spoon: $('.spoon', svg), need: 1500, canStir: () => this.hasMound, onProgress: p => this.fold(p) });
+    this.reset();
+  },
+  add() {
+    if (this.hasMound) { say(this.root, 'Mix first, then add more.', 'warn'); return; }
+    if (this.added >= this.PARTS) return;
+    this.added++; this.hasMound = true; this.stir.reset();
+    const g = $('.mound', this.svg);
+    g.innerHTML = `<path d="M200 214 Q270 150 340 214 Z" fill="#FFFDF8" stroke="#E2D8CA" stroke-width="2"/>` +
+      Array.from({ length: 10 }, (_, i) => `<circle cx="${215 + i * 12}" cy="${206 - (i % 3) * 8}" r="${3 + (i % 2) * 2}" fill="#fff" stroke="#E2D8CA"/>`).join('');
+    g.style.opacity = 1;
+    g.animate([{ transform: 'translateY(-110px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 500, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+    $$('.dots circle', this.svg)[this.added - 1].setAttribute('fill', '#F2B184');
+    $('.hint', this.svg).setAttribute('opacity', 1);
+    $('.mix-meter', this.root).style.width = '0';
+    say(this.root, `Flour part ${this.added} of ${this.PARTS}. Mix gently!`);
+    const b = $('[data-a="add"]', this.root); b.disabled = true; b.classList.remove('next-hint');
+  },
+  fold(p) {
+    const g = $('.mound', this.svg); g.style.opacity = 1 - p;
+    $('.mix-meter', this.root).style.width = p * 100 + '%';
+    $('.bat', this.svg).setAttribute('fill', mix('#F3D58C', '#F6E4B0', (this.added - 1 + p) / this.PARTS));
+    if (p >= 1 && this.hasMound) {
+      this.hasMound = false; $('.hint', this.svg).setAttribute('opacity', 0);
+      this.tasks.done('f' + this.added);
+      const b = $('[data-a="add"]', this.root);
+      if (this.added < this.PARTS) { b.disabled = false; b.classList.add('next-hint'); b.textContent = `Add flour (${this.added + 1} of ${this.PARTS})`; say(this.root, 'No white flour left. Add more!', 'good'); }
+      else { b.textContent = 'All flour added'; say(this.root, 'Smooth batter, no lumps!', 'good', 0); const [x, y] = stagePoint(this.svg); burst(x, y, 24); }
+    }
+  },
+  reset() {
+    this.added = 0; this.hasMound = false; this.stir.reset();
+    $('.mound', this.svg).innerHTML = ''; $$('.dots circle', this.svg).forEach(c => c.setAttribute('fill', '#fff'));
+    $('.bat', this.svg).setAttribute('fill', '#F3D58C'); $('.hint', this.svg).setAttribute('opacity', 0);
+    const b = $('[data-a="add"]', this.root); b.disabled = false; b.classList.add('next-hint'); b.textContent = `Add flour (1 of ${this.PARTS})`;
+    $('.mix-meter', this.root).style.width = '0'; $('.say', this.root).classList.remove('show'); this.tasks.reset();
+  }
+};
+
+/* ---- Step 6: fill cases and bake ---- */
+Modules.step6 = {
+  init(root) {
+    this.root = root; this.tasks = taskList(root);
+    const svg = $('.sv', root); this.svg = svg;
+    const cups = [];
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) {
+      const x = 62 + c * 84, y = 150 + r * 112, i = r * 6 + c;
+      cups.push(`<g class="cup" data-i="${i}" transform="translate(${x} ${y})" style="cursor:pointer">
+        <path class="dome" d="M-30 2 Q-30 -40 0 -42 Q30 -40 30 2Z" fill="#F8E7B0" stroke="#5A4A48" stroke-width="3" transform="scale(1 0)"/>
+        <path class="bfill" d="M-28 4 H28 L26 4 H-26Z" fill="#F6E4B0"/>
+        <path d="M-32 0 H32 L24 52 H-24Z" fill="#F7C6CC" stroke="#5A4A48" stroke-width="3" stroke-linejoin="round" fill-opacity=".55"/>
+        <path d="M-20 4 L-16 50 M-8 4 L-6 50 M4 4 L4 50 M16 4 L12 50" stroke="#E79AA6" stroke-width="2"/>
+        <g fill="#fff">${[[-18, 14], [0, 22], [16, 12], [-10, 38], [10, 40]].map(([a, b]) => `<circle cx="${a}" cy="${b}" r="3.5"/>`).join('')}</g>
+      </g>`);
+    }
+    svg.innerHTML = `
+      <g class="oven" opacity="0"><rect x="10" y="40" width="520" height="330" rx="24" fill="#4A3F3C" stroke="#5A4A48" stroke-width="4"/><rect x="26" y="96" width="488" height="262" rx="16" fill="#FFB65C" class="ovglow"/>
+        <rect x="380" y="52" width="130" height="36" rx="8" fill="#2A2422"/><text class="ovtxt timer" x="445" y="78" text-anchor="middle" font-size="22" fill="#FF9D4D">180°C</text>
+        <text class="ovtime timer" x="40" y="80" font-size="30" fill="#FFF4EA">16:00</text></g>
+      <rect class="tray" x="22" y="196" width="496" height="16" rx="6" fill="#B9C3CB" stroke="#5A4A48" stroke-width="3"/>
+      <rect class="tray" x="22" y="308" width="496" height="16" rx="6" fill="#B9C3CB" stroke="#5A4A48" stroke-width="3"/>
+      ${cups.join('')}
+      <text class="cnt timer" x="270" y="60" text-anchor="middle" font-size="26" fill="#8B5A48">Filled 0 / 12</text>`;
+    // keep tray rects behind cups; cups bottom at y+52 → tray y aligns
+    $$('.tray', svg).forEach((t, i) => t.setAttribute('y', 150 + i * 112 + 50));
+    svg.addEventListener('click', e => { const c = e.target.closest('.cup'); c && this.fill(c); });
+    $('.controls', root).addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (!b || b.disabled) return; b.dataset.a === 'fillall' ? this.fillAll() : this.bake(); });
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.reset();
+  },
+  fill(c, quiet) {
+    if (this.baking) return;
+    if (c.dataset.full) { if (!quiet) say(this.root, 'Two-thirds full is enough!', 'warn'); return; }
+    c.dataset.full = '1';
+    const f = $('.bfill', c);
+    f.animate([{ d: 'path("M-28 4 H28 L26 4 H-26Z")' }, { d: 'path("M-29 16 H29 L24 52 H-24Z")' }], { duration: 350, fill: 'forwards' });
+    safe(() => f.setAttribute('d', 'M-29 16 H29 L24 52 H-24Z'));
+    this.n++; $('.cnt', this.svg).textContent = `Filled ${this.n} / 12`;
+    if (this.n === 12) { this.tasks.done('fill'); enable(this.root, ['bake']); say(this.root, 'All 12 cases are full!', 'good'); }
+  },
+  async fillAll() { const cs = $$('.cup', this.svg).filter(c => !c.dataset.full); for (const c of cs) { this.fill(c, true); await sleep(90); } },
+  bake() {
+    enable(this.root, []); this.baking = true; const s = this.svg;
+    $('.oven', s).style.transition = 'opacity .6s'; $('.oven', s).setAttribute('opacity', 1); $('.cnt', s).setAttribute('opacity', 0);
+    $('.ovglow', s).animate([{ opacity: .85 }, { opacity: 1 }, { opacity: .85 }], { duration: 1600, iterations: Infinity });
+    const domes = $$('.dome', s);
+    this.timer = countdown(16 * 60, (left, p) => {
+      $('.ovtime', s).textContent = mmss(left);
+      const k = clamp((p - .1) / .7, 0, 1);
+      domes.forEach(d => { d.setAttribute('transform', `scale(1 ${k})`); d.setAttribute('fill', mix('#F8E7B0', '#E7AF55', clamp((p - .5) / .5, 0, 1))); });
+    }, () => {
+      $('.ovglow', s).getAnimations().forEach(a => a.cancel());
+      $('.oven', s).setAttribute('opacity', 0); $('.ovtime', s).textContent = '0:00';
+      this.tasks.done('bake'); say(this.root, 'Ding! The cupcakes are ready!', 'good', 0);
+      const [x, y] = stagePoint(s); burst(x, y, 40); setTimeout(() => burst(x - 120, y - 40, 24), 300);
+    });
+  },
+  reset() {
+    this.timer && this.timer.cancel(); this.n = 0; this.baking = false; const s = this.svg;
+    $$('.cup', s).forEach(c => { delete c.dataset.full; const f = $('.bfill', c); f.getAnimations().forEach(a => a.cancel()); f.setAttribute('d', 'M-28 4 H28 L26 4 H-26Z'); });
+    $$('.dome', s).forEach(d => { d.setAttribute('transform', 'scale(1 0)'); d.setAttribute('fill', '#F8E7B0'); });
+    $('.oven', s).setAttribute('opacity', 0); $('.ovglow', s).getAnimations().forEach(a => a.cancel());
+    $('.cnt', s).setAttribute('opacity', 1); $('.cnt', s).textContent = 'Filled 0 / 12'; $('.ovtime', s).textContent = '16:00';
+    $('.say', this.root).classList.remove('show'); this.tasks.reset(); enable(this.root, ['fillall']);
+    say(this.root, 'Click each case to spoon in batter', '', 2600);
+  }
+};
+
+/* ---- Recipe steps (shared by recap + worksheets) ---- */
+const STEPS = [
+  { t: 'Prepare the liquids', d: 'Mix milk and honey. Heat for 30 seconds, stir, and let it cool.', pics: ['p1.webp'] },
+  { t: 'Prepare the dry ingredients', d: 'Mix and sieve cake flour, baking powder, and salt.', pics: ['p2.webp'] },
+  { t: 'Whisk the eggs and sugar', d: 'Whisk eggs for 2 minutes. Add sugar and whisk until creamy.', pics: ['p3a.webp', 'p3b.webp'] },
+  { t: 'Add oil and flavor', d: 'Add oil slowly and whisk 3 minutes. Add vanilla and honey milk.', pics: ['p4a.webp', 'p4b.webp'] },
+  { t: 'Mix with flour', d: 'Add flour in 3–4 times. Mix gently.', pics: ['p5.webp'] },
+  { t: 'Fill the cups & Bake', d: 'Spoon the batter into cases. Bake at 180°C for 16 minutes.', pics: ['p6.webp'] }
+];
+const imgTags = pics => pics.map(p => `<img src="${IMG[p]}" alt="">`).join('');
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+Modules.recap = {
+  init(root) {
+    $('#recap').innerHTML = STEPS.map((s, i) => `<button class="rp" data-in="up" style="--d:${150 + i * 90}" data-zoom="${s.pics.join(',')}">
+      <div class="imgs">${imgTags(s.pics)}</div><div class="cap"><span class="no">${i + 1}</span><span class="tx">${s.t}<br><span style="font-weight:700;color:#6a5a55">${s.d}</span></span></div></button>`).join('');
+  }
+};
+
+/* ---- generic pointer drag (works inside the scaled stage) ---- */
+function dragger({ source, onDrop, onMove, makeGhost }) {
+  let ghost = null, item = null, off = [0, 0];
+  source.addEventListener('pointerdown', e => {
+    if (e.button !== 0 || document.body.classList.contains('drawing')) return;
+    const it = e.target.closest('[data-drag]'); if (!it) return;
+    e.preventDefault(); item = it;
+    const [x, y] = toStage(e), r = it.getBoundingClientRect(), s = stage.getBoundingClientRect();
+    const ix = (r.left - s.left) / scale, iy = (r.top - s.top) / scale;
+    off = [x - ix, y - iy];
+    ghost = makeGhost ? makeGhost(it) : it.cloneNode(true);
+    ghost.classList.add('drag-ghost'); ghost.style.left = ix + 'px'; ghost.style.top = iy + 'px'; ghost.style.width = r.width / scale + 'px';
+    stage.appendChild(ghost); it.classList.add('dragging');
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up, { once: true }); window.addEventListener('pointercancel', up, { once: true });
+  });
+  function move(e) { if (!ghost) return; const [x, y] = toStage(e); ghost.style.left = x - off[0] + 'px'; ghost.style.top = y - off[1] + 'px'; onMove && onMove(e, item); }
+  function up(e) {
+    window.removeEventListener('pointermove', move);
+    if (!ghost) return; ghost.remove(); ghost = null; item.classList.remove('dragging');
+    const target = document.elementFromPoint(e.clientX, e.clientY); onDrop(item, target, e); item = null;
+  }
+}
+
+/* ---- Worksheet 1: sort strips ---- */
+Modules.sort = {
+  init(root) {
+    this.root = root; this.list = $('#sortlist');
+    dragger({
+      source: this.list,
+      onMove: (e, item) => {
+        const over = document.elementFromPoint(e.clientX, e.clientY); const li = over && over.closest('.strip');
+        if (li && li !== item && li.parentNode === this.list) {
+          const r = li.getBoundingClientRect(); const after = e.clientY > r.top + r.height / 2;
+          this.list.insertBefore(item, after ? li.nextSibling : li); this.clearMarks();
+        }
+      },
+      onDrop: () => this.numbers()
+    });
+    $('[data-act="check"]', root).addEventListener('click', () => this.check());
+    $('[data-act="shuffle"]', root).addEventListener('click', () => this.build());
+    this.build();
+  },
+  build() {
+    let order; do { order = shuffle(STEPS.map((_, i) => i)); } while (order.every((v, i) => v === i));
+    this.list.innerHTML = order.map(i => `<li class="strip" data-drag data-i="${i}"><svg class="sc"><use href="#i-scissors"/></svg><span>${STEPS[i].t}</span><span class="pos"></span></li>`).join('');
+    $('#sortScore').textContent = ''; this.numbers();
+  },
+  numbers() { $$('.strip', this.list).forEach((li, k) => { $('.pos', li).textContent = k + 1; }); },
+  clearMarks() { $$('.strip', this.list).forEach(li => li.classList.remove('right', 'wrong')); },
+  check() {
+    let ok = 0;
+    $$('.strip', this.list).forEach((li, k) => { const r = Number(li.dataset.i) === k; ok += r; li.classList.remove('right', 'wrong'); void li.offsetWidth; li.classList.add(r ? 'right' : 'wrong'); });
+    $('#sortScore').textContent = ok === STEPS.length ? 'Perfect! All 6 steps are in order.' : `${ok} of ${STEPS.length} in the right place. Try again!`;
+    if (ok === STEPS.length) { const [x, y] = stagePoint(this.list); burst(x, y, 40); }
+  }
+};
+
+/* ---- Worksheet 2: paste & match pictures ---- */
+Modules.match = {
+  init(root) {
+    this.root = root;
+    $('#matchRows').innerHTML = STEPS.map((s, i) => `<tr><td class="no">${i + 1}</td><td class="st">${s.t}</td><td><div class="slot" data-row="${i}">drop picture</div></td><td><div class="note" contenteditable="true" spellcheck="false" data-ph="notes…"></div></td></tr>`).join('');
+    $('#ingList').innerHTML = INGREDIENTS.map(g => `<span>${g.name} ${fmtAmt(g.amt)}${g.unit ? ' ' + g.unit : ''}</span>`).join('');
+    const onDrop = (item, target) => {
+      $$('.slot', root).forEach(s => s.classList.remove('hover')); $('#tray').classList.remove('hover');
+      const slot = target && target.closest('.slot'), tray = target && target.closest('.tray');
+      if (slot) {
+        const existing = $('.pic', slot); if (existing && existing !== item) $('#tray').appendChild(existing);
+        slot.textContent = ''; slot.appendChild(item);
+      } else if (tray) tray.appendChild(item);
+      $$('.slot', root).forEach(s => { s.classList.remove('right', 'wrong'); if (!$('.pic', s)) s.textContent = 'drop picture'; });
+      $('#matchScore').textContent = '';
+    };
+    const onMove = e => { const t = document.elementFromPoint(e.clientX, e.clientY); $$('.slot', root).forEach(s => s.classList.toggle('hover', !!t && t.closest('.slot') === s)); $('#tray').classList.toggle('hover', !!t && !!t.closest('.tray')); };
+    dragger({ source: root, onDrop, onMove });
+    $('[data-act="check"]', root).addEventListener('click', () => this.check());
+    $('[data-act="reset"]', root).addEventListener('click', () => this.reset());
+    this.reset();
+  },
+  reset() {
+    $$('.slot', this.root).forEach(s => { s.className = 'slot'; s.textContent = 'drop picture'; });
+    $('#tray').innerHTML = shuffle(STEPS.map((_, i) => i)).map(i => `<div class="pic" data-drag data-i="${i}">${imgTags(STEPS[i].pics)}</div>`).join('');
+    $('#matchScore').textContent = '';
+  },
+  check() {
+    let ok = 0, filled = 0;
+    $$('.slot', this.root).forEach(s => {
+      const p = $('.pic', s); s.classList.remove('right', 'wrong'); if (!p) return; filled++;
+      void s.offsetWidth; const r = Number(p.dataset.i) === Number(s.dataset.row); ok += r; s.classList.add(r ? 'right' : 'wrong');
+    });
+    $('#matchScore').textContent = filled === 0 ? 'Drag a picture into the table first.' : ok === STEPS.length ? 'Perfect match!' : `${ok} of ${STEPS.length} correct`;
+    if (ok === STEPS.length) { const [x, y] = stagePoint($('.sheet', this.root)); burst(x, y, 40); }
+  }
+};
+
+/* =========================================================
+   Lightbox (zoom pictures)
+   ========================================================= */
+const Lightbox = {
+  el: $('#lightbox'),
+  open(list) { $('.lb', this.el).innerHTML = list.map(k => `<img src="${IMG[k.trim()]}" alt="">`).join(''); this.el.classList.add('show'); },
+  close() { this.el.classList.remove('show'); },
+  get isOpen() { return this.el.classList.contains('show'); }
+};
+Lightbox.el.addEventListener('click', () => Lightbox.close());
+stage.addEventListener('click', e => { const z = e.target.closest('[data-zoom]'); if (z && !document.body.classList.contains('drawing')) Lightbox.open(z.dataset.zoom.split(',')); });
+
+/* =========================================================
+   Drawing layer: middle click toggles; left draws; right erases strokes
+   ========================================================= */
+const Draw = {
+  canvas: $('#draw-layer'), eraser: $('#eraser'),
+  color: '#E0473F', width: 8, on: false, pages: new Map(), cur: null, erasing: false,
+  init() {
+    this.ctx = this.canvas.getContext('2d'); this.ctx.scale(2, 2);
+    const c = this.canvas;
+    c.addEventListener('pointerdown', e => {
+      if (!this.on) return;
+      if (e.button === 0) { const [x, y] = toStage(e); this.cur = { c: this.color, w: this.width, p: [[x, y]] }; this.strokes().push(this.cur); safe(() => c.setPointerCapture(e.pointerId)); }
+      else if (e.button === 2) { this.erasing = true; document.body.classList.add('erasing'); this.eraseAt(e); safe(() => c.setPointerCapture(e.pointerId)); }
+    });
+    c.addEventListener('pointermove', e => {
+      if (!this.on) return;
+      const [x, y] = toStage(e);
+      this.eraser.style.left = x + 'px'; this.eraser.style.top = y + 'px';
+      if (this.cur) { const pts = this.cur.p, l = pts[pts.length - 1]; if (Math.hypot(x - l[0], y - l[1]) > 1.5) { pts.push([x, y]); this.render(); } }
+      else if (this.erasing) this.eraseAt(e);
+    });
+    const end = () => { this.cur = null; this.erasing = false; document.body.classList.remove('erasing'); this.eraser.style.display = 'none'; };
+    c.addEventListener('pointerup', end); c.addEventListener('pointercancel', end);
+    c.addEventListener('contextmenu', e => e.preventDefault());
+    $('#drawbar').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      if (b.classList.contains('sw')) { this.color = b.dataset.c; if (b.dataset.w) this.width = Number(b.dataset.w); $$('#drawbar .sw').forEach(x => x.setAttribute('aria-pressed', String(x === b))); this.syncSize(); }
+      if (b.classList.contains('sz')) { this.width = Number(b.dataset.w); this.syncSize(); if (this.color.startsWith('rgba')) { this.color = '#E0473F'; $$('#drawbar .sw').forEach((x, i) => x.setAttribute('aria-pressed', String(i === 0))); } }
+      if (b.dataset.act === 'clear') this.clearPage();
+      if (b.dataset.act === 'exit') this.toggle(false);
+    });
+    $('#drawbar').addEventListener('contextmenu', e => e.preventDefault());
+  },
+  syncSize() { $$('#drawbar .sz').forEach(x => x.setAttribute('aria-pressed', String(Number(x.dataset.w) === this.width))); },
+  strokes() { const k = Deck.idx; if (!this.pages.has(k)) this.pages.set(k, []); return this.pages.get(k); },
+  toggle(force) {
+    this.on = typeof force === 'boolean' ? force : !this.on;
+    document.body.classList.toggle('drawing', this.on);
+    if (!this.on) { this.cur = null; this.erasing = false; this.eraser.style.display = 'none'; }
+    toast(this.on ? 'Draw mode: left click draws, right click erases' : 'Draw mode off');
+  },
+  eraseAt(e) {
+    const [x, y] = toStage(e), R = 18; this.eraser.style.display = 'block';
+    this.eraser.style.left = x + 'px'; this.eraser.style.top = y + 'px';
+    const list = this.strokes(); let changed = false;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const p = list[i].p, w = list[i].w / 2;
+      for (let j = 0; j < p.length; j++) {
+        const a = p[j], b = p[j + 1] || a;
+        if (segDist(x, y, a[0], a[1], b[0], b[1]) < R + w) { list.splice(i, 1); changed = true; break; }
+      }
+    }
+    if (changed) this.render();
+  },
+  clearPage() { this.pages.set(Deck.idx, []); this.render(); },
+  render() {
+    const ctx = this.ctx; ctx.clearRect(0, 0, 1280, 720);
+    for (const s of this.strokes()) {
+      ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      const p = s.p; ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+      if (p.length === 1) ctx.lineTo(p[0][0] + .1, p[0][1]);
+      for (let i = 1; i < p.length - 1; i++) { const mx = (p[i][0] + p[i + 1][0]) / 2, my = (p[i][1] + p[i + 1][1]) / 2; ctx.quadraticCurveTo(p[i][0], p[i][1], mx, my); }
+      if (p.length > 1) ctx.lineTo(p[p.length - 1][0], p[p.length - 1][1]);
+      ctx.stroke();
+    }
+  }
+};
+function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy;
+  const t = l ? clamp(((px - ax) * dx + (py - ay) * dy) / l, 0, 1) : 0;
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+/* =========================================================
+   Deck: navigation, scaling, notes
+   ========================================================= */
+const Deck = {
+  slides: $$('.slide'), idx: 0, lock: 0, wheelAcc: 0,
+  init() {
+    this.slides.forEach(sl => {
+      $$('.split', sl).forEach(h => {
+        let i = 0;
+        h.innerHTML = h.innerHTML.split(/(<br>)/).map(part => part === '<br>' ? part : part.split(' ').map(w => `<span style="white-space:nowrap">${[...w].map(ch => `<span class="ch" style="--i:${i++}">${ch}</span>`).join('')}</span>`).join(' ')).join('');
+      });
+      const m = Modules[sl.dataset.mod]; if (m && m.init) safe(() => m.init(sl));
+    });
+    Speed.mount();
+    const h = parseInt((location.hash || '').replace(/\D/g, ''), 10);
+    this.go(Number.isFinite(h) ? h - 1 : 0, true);
+  },
+  go(n, first) {
+    n = clamp(n, 0, this.slides.length - 1);
+    if (n === this.idx && !first) return;
+    const prev = this.slides[this.idx], next = this.slides[n];
+    if (!first) { const m = Modules[prev.dataset.mod]; m && m.leave && safe(() => m.leave()); }
+    this.slides.forEach((s, i) => { s.classList.toggle('is-active', i === n); s.classList.toggle('is-before', i < n); s.classList.remove('play'); });
+    void next.offsetWidth; next.classList.add('play');
+    this.idx = n;
+    const m = Modules[next.dataset.mod]; m && m.enter && safe(() => m.enter());
+    Draw.render(); Notes.render(); Lightbox.close();
+    const lead = next.dataset.lead || '';
+    $('#counter').innerHTML = `${n + 1} / ${this.slides.length}<span class="lead ${lead === 'AI' ? 'ai' : ''}">${lead}</span>`;
+    $('#progress').style.width = ((n + 1) / this.slides.length * 100) + '%';
+    safe(() => history.replaceState(null, '', '#' + (n + 1)));
+  },
+  next() { this.go(this.idx + 1); }, prev() { this.go(this.idx - 1); },
+  fit() {
+    // stage is centred with translate(-50%,-50%) and scaled around its centre
+    scale = Math.min(window.innerWidth / 1280, window.innerHeight / 720) || 1;
+    stage.style.transform = `translate(-50%,-50%) scale(${scale})`;
+  }
+};
+const Notes = {
+  el: $('#notes'), on: false,
+  toggle() { this.on = !this.on; this.el.classList.toggle('show', this.on); this.render(); },
+  render() {
+    const sl = Deck.slides[Deck.idx], n = $('.notes', sl);
+    const lead = (n && n.dataset.lead) || sl.dataset.lead || '';
+    const who = $('.who', this.el); who.textContent = 'Lead: ' + lead; who.classList.toggle('ai', lead === 'AI');
+    $('.ttl', this.el).textContent = `Slide ${Deck.idx + 1}`;
+    $('.body', this.el).innerHTML = n ? n.innerHTML : '<p>No notes for this slide.</p>';
+  }
+};
+
+/* ---------- input ---------- */
+const isTyping = t => t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.type !== 'range');
+window.addEventListener('keydown', e => {
+  if (e.key === 'F1') { e.preventDefault(); Notes.toggle(); return; }
+  if (isTyping(e.target)) { if (e.key === 'Escape') e.target.blur(); return; }
+  switch (e.key) {
+    case 'ArrowRight': case 'ArrowDown': case 'PageDown': e.preventDefault(); Deck.next(); break;
+    case 'ArrowLeft': case 'ArrowUp': case 'PageUp': e.preventDefault(); Deck.prev(); break;
+    case 'Home': Deck.go(0); break;
+    case 'End': Deck.go(Deck.slides.length - 1); break;
+    case 'Escape': if (Lightbox.isOpen) Lightbox.close(); else if (Notes.on) Notes.toggle(); else if (Draw.on) Draw.toggle(false); break;
+    case 'f': case 'F': if (!e.ctrlKey && !e.metaKey) safe(() => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast('Full screen is not available here.'))); break;
+    case 'c': case 'C': if (Draw.on) Draw.clearPage(); break;
+  }
+}, true);
+window.addEventListener('wheel', e => {
+  if (e.target.closest && e.target.closest('#notes')) return;
+  e.preventDefault();
+  const now = performance.now();
+  if (now < Deck.lock) return;
+  Deck.wheelAcc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+  if (Math.abs(Deck.wheelAcc) >= 40) { Deck.wheelAcc > 0 ? Deck.next() : Deck.prev(); Deck.wheelAcc = 0; Deck.lock = now + 650; }
+  clearTimeout(Deck._wt); Deck._wt = setTimeout(() => { Deck.wheelAcc = 0; }, 200);
+}, { passive: false });
+// middle click toggles draw mode (and blocks browser autoscroll)
+window.addEventListener('mousedown', e => { if (e.button === 1) { e.preventDefault(); Draw.toggle(); } }, true);
+window.addEventListener('auxclick', e => { if (e.button === 1) e.preventDefault(); });
+window.addEventListener('contextmenu', e => { if (Draw.on) e.preventDefault(); });
+window.addEventListener('resize', () => Deck.fit());
+
+/* help hint fades after a few seconds; '?' brings it back */
+let helpT;
+function showHelp() { const h = $('#help'); h.classList.remove('hide'); clearTimeout(helpT); helpT = setTimeout(() => h.classList.add('hide'), 5000); }
+window.addEventListener('keydown', e => { if (e.key === '?') showHelp(); });
+
+Deck.fit(); Draw.init(); Deck.init(); showHelp();
+})();
+</script>

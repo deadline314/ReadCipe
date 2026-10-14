@@ -1,0 +1,7 @@
+# tools/build.py
+Pillow>=10
+# tools/extract_assets.py
+numpy>=1.26
+scipy>=1.11
+# tools/screenshot_all.py (optional smoke test)
+playwright>=1.45
