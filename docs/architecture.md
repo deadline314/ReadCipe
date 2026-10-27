@@ -90,3 +90,9 @@ Modules.myLab = {
 - `src/teacher.src.html`：`GET /api/scores` 每 10 秒更新；所有資料用 textContent 顯示（API 是公開的，不能當 HTML）。
 - `worker/index.mjs`：`/api/token`、`/api/score`（`parseScore` 驗證、D1 upsert 只保留高分）、`/api/scores`；其他路徑由 Static Assets 直接回應（`wrangler.jsonc` 的 `run_worker_first` 只含 `/api/*`）。
 - 測試：`node worker/test.mjs`、`python tools/test_read.py`（Playwright，假引擎＋mock API）。
+
+## 語音與嵌入模式（簡報）
+- `Voice`：瀏覽器 `speechSynthesis` 包裝，`speak(text, { onWord, onEnd })`，不支援時回傳 false，畫面照常運作。之後換成錄好的 AI 語音時只改這一層。
+- `Reader.words()`：念句子並依 `boundary` 事件逐字亮起；聲音沒有 boundary 事件時改用固定節奏。`Reader.items()` 念每張食材卡的名稱。
+- `Narrator`：N 鍵或 `#nbVoice` 念本頁講稿的 `<p>`（去掉 `.cue`），換頁時 `Deck.go` 會停止。
+- `EMBED`（`?embed=N`）：只顯示第 N 頁、隱藏控制列、停用鍵盤/滾輪/中鍵；接受同源 `postMessage({ type: 'deck', goto: N })` 換頁、`{ hush: true }` 停止聲音。學生頁的 `Frame` 物件就是用這個介面。

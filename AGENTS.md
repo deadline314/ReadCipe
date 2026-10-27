@@ -15,7 +15,7 @@
 3. `src/index.src.html` 第一行是 `<meta charset="utf-8">`，必須保留。沒有 `<html>/<head>/<body>`，因為 Artifact 主機會自己包；網站版由 build.py 包成完整文件。
 4. 部署到網站一定用 `dist/site/index.html`（用 Artifact 片段會出現亂碼，例如 `1Ã—`）。
 5. 換頁規則（使用者明確要求）：**點擊畫面不能換頁**。只能用方向鍵、滾輪、右下角按鈕（以及講稿視窗的按鈕/方向鍵）。
-6. 中鍵＝繪畫模式（左畫右擦），F1＝講稿視窗；這些行為不要改掉。
+6. 中鍵＝繪畫模式（左畫右擦），F1＝講稿視窗，N 或右下角喇叭＝用瀏覽器語音念本頁講稿；這些行為不要改掉。`?embed=N` 是給學生頁嵌入單一投影片用的模式（隱藏控制列、不能換頁），改簡報時不要破壞它。
 7. 新增實驗區時沿用模組介面：`Modules.xxx = { init(root), enter(), leave(), reset(), autoStep() }`，等待一律用 `countdown(seconds, onTick, onDone, this.root)`，這樣 Fast/Real/Auto 和 Skip 才會自動生效（見 `docs/architecture.md`）。
 8. 改完要驗證：建置後用 `tools/screenshot_all.py`（或自己的 Playwright 腳本）截圖檢查版面並看有無 page error。Cloud 環境的 Chromium 在 `/opt/pw-browsers`，不要 `playwright install`。
 9. 講稿（每頁 `<aside class="notes">`）以老師手寫小卡為準，原文在 `docs/teacher-script.md`；`<span class="cue">` 是操作提示（灰色小字），不是要唸的台詞。
