@@ -1,0 +1,24 @@
+{
+  // ReadCipe: deck + Read & Check pages (dist/site) + /api/* in one Worker.
+  // The name must stay "wispy-fog-b991" so the existing workers.dev URL keeps working.
+  "name": "wispy-fog-b991",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-05-01",
+  "assets": {
+    "directory": "./dist/site",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    // Create with: npx wrangler d1 create readcipe   (then paste the id here)
+    { "binding": "DB", "database_name": "readcipe", "database_id": "PASTE_DATABASE_ID_FROM_WRANGLER_D1_CREATE" }
+  ],
+  // Per-IP limits; the code skips them if the binding is missing.
+  "ratelimits": [
+    { "name": "TOKEN_LIMIT", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } },
+    { "name": "SCORE_LIMIT", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } }
+  ],
+  "observability": { "enabled": true }
+  // Secrets (never in this file): npx wrangler secret put AZURE_SPEECH_KEY / AZURE_SPEECH_REGION
+  // Local dev: put them in .dev.vars (git-ignored).
+}
