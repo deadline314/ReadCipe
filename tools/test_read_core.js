@@ -7,6 +7,8 @@ const card = id => C.prepare(C.CARDS.find(c => c.id === id));
 
 // --- cards and reference text ---
 assert.deepEqual(C.CARD_IDS, ['1', '2', '3', '4-1', '4-2', '5', '6']);
+assert.deepEqual(C.CARDS.map(c => c.slide), [8, 9, 10, 11, 12, 13, 14]); // deck slides s-step1 .. s-step6
+assert.equal(card('4-2').slide, 12);
 const c6 = card('6');
 assert.equal(c6.referenceText, 'Fill the cups and bake. Spoon the batter into cupcake cases. Bake at one hundred eighty degrees for sixteen minutes.');
 assert.deepEqual(c6.tokens.find(t => t.text === '180°C').words, ['one', 'hundred', 'eighty', 'degrees']);

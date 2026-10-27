@@ -43,25 +43,32 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
 .btn.big{font-size:30px;padding:16px 46px;margin-top:16px}
 .btn:disabled{opacity:.38;cursor:not-allowed}
 .btn:focus-visible,.chip:focus-visible,.pad button:focus-visible{outline:4px solid var(--noun);outline-offset:3px}
-.dots{display:flex;gap:10px;margin:4px 0 14px}
+.dots{display:flex;gap:10px;margin:0 0 10px}
+/* the deck's step slide, scaled into a 16:9 box; leaves room for the reading panel below */
+.slide-box{width:clamp(320px,calc((100vh - 380px) * 16 / 9),100%);width:clamp(320px,calc((100dvh - 380px) * 16 / 9),100%);aspect-ratio:16/9;
+  border-radius:18px;overflow:hidden;background:var(--paper);box-shadow:0 6px 0 rgba(106,60,58,.15);margin-bottom:12px;transition:opacity .2s}
+.slide-box iframe{width:100%;height:100%;border:0;display:block}
+body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds while the microphone listens */
 .dots i{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E7B48C}
 .dots i.done{background:var(--mint);border-color:#3E8A5E}
 .dots i.now{background:var(--lemon);border-color:var(--brown);transform:scale(1.25)}
-.card{background:var(--card);border-radius:28px;padding:26px 32px;width:100%;box-shadow:0 6px 0 rgba(106,60,58,.15)}
-.step-no{font-family:var(--display);font-weight:700;font-size:26px;color:var(--apricot);-webkit-text-stroke:1px var(--brown)}
-.hl{display:inline-block;background:var(--lemon);border-radius:10px;padding:2px 12px;font-family:var(--display);font-weight:600;font-size:34px;margin:8px 0 6px;color:var(--brown)}
-.sentence{font-size:40px;line-height:1.5;font-weight:800;margin:6px 0 0}
+.card{background:var(--card);border-radius:24px;padding:14px 24px;width:100%;box-shadow:0 6px 0 rgba(106,60,58,.15)}
+.step-no{font-family:var(--display);font-weight:700;font-size:18px;color:var(--apricot);-webkit-text-stroke:1px var(--brown)}
+.hl{display:inline-block;background:var(--lemon);border-radius:10px;padding:2px 12px;font-family:var(--display);font-weight:600;font-size:26px;margin:4px 0;color:var(--brown)}
+.sentence{font-size:30px;line-height:1.45;font-weight:800;margin:2px 0 0}
 .w{border-radius:8px;padding:0 3px;transition:background-color .2s,color .2s}
 .w.lit{background:#FFF3B0}
 .w.good{color:var(--good)} .w.ok{color:var(--ok)} .w.bad{color:var(--bad);text-decoration:underline wavy}
 .w.miss{color:var(--miss);text-decoration:line-through}
-.status{font-family:var(--display);font-size:34px;color:var(--noun);min-height:48px;margin-top:14px}
+.result{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;min-height:58px;margin-top:8px}
+.status{font-family:var(--display);font-size:30px;color:var(--noun)}
 .status.live::before{content:'';display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--verb);margin-right:12px;vertical-align:middle;animation:pulse 1s infinite}
 @keyframes pulse{50%{transform:scale(1.4);opacity:.6}}
-.stars{font-size:54px;color:#F2B01E;letter-spacing:6px;min-height:64px}
-.feedback{font-size:28px;font-weight:800;color:var(--brown);margin:0 0 6px;min-height:38px;text-align:center}
-.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-.stars.big{font-size:72px}
+.stars{font-size:44px;color:#F2B01E;letter-spacing:4px}
+.feedback{font-size:24px;font-weight:800;color:var(--brown);margin:0;text-align:center}
+.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+[data-screen="card"] .btn.big{margin-top:0}
+.stars.big{font-size:72px;min-height:80px}
 .badge{font-family:var(--display);font-size:32px;background:var(--lemon);border-radius:999px;padding:8px 28px;color:var(--brown);margin:8px 0 16px}
 .weak{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .weak button{font-size:28px;font-weight:800;background:#fff;border:3px solid var(--rose);border-radius:16px;padding:10px 20px;color:var(--verb);cursor:pointer}
@@ -72,7 +79,7 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
 .confetti{position:fixed;top:-20px;width:12px;height:18px;border-radius:3px;z-index:5;pointer-events:none;animation:fall 2.6s linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @media (max-width:760px){
-  #seatPad{grid-template-columns:repeat(5,1fr)} .sentence{font-size:30px} .hl{font-size:26px} h1{font-size:32px}
+  #seatPad{grid-template-columns:repeat(5,1fr)} .sentence{font-size:24px} .hl{font-size:26px} h1{font-size:32px}
 }
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
 </style>
@@ -101,14 +108,17 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
 
   <section data-screen="card" hidden>
     <div class="dots" id="dots"></div>
+    <div class="slide-box"><iframe id="slideFrame" title="Step slide from the lesson"></iframe></div>
     <div class="card">
       <div class="step-no" id="stepNo"></div>
       <h2 class="hl" id="cardTitle"></h2>
       <p class="sentence" id="sentence"></p>
     </div>
-    <div class="status" id="status"></div>
-    <div class="stars" id="stars"></div>
-    <p class="feedback" id="feedback"></p>
+    <div class="result">
+      <div class="status" id="status"></div>
+      <div class="stars" id="stars"></div>
+      <p class="feedback" id="feedback"></p>
+    </div>
     <div class="actions">
       <button class="btn" id="listenBtn">Listen</button>
       <button class="btn go big" id="readBtn">Start reading</button>
@@ -140,14 +150,15 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
   // Reading cards = the step slides of the deck (src/index.src.html, .instr text).
   // Keep in sync with the deck and with CARD_IDS in worker/index.mjs.
   // say: display word (without trailing punctuation) -> how it is spoken (Azure reference text).
+  // slide: the deck slide shown above the card (1-based, same as the deck's #N address).
   const CARDS = [
-    { id: '1', title: 'Prepare the liquids', text: 'Mix milk and honey. Heat and let it cool.' },
-    { id: '2', title: 'Prepare the dry ingredients', text: 'Mix and sieve cake flour, baking powder, and salt.' },
-    { id: '3', title: 'Whisk the eggs and sugar', text: 'Whisk eggs on high speed for 2 minutes. Add sugar and mix until creamy.', say: { '2': 'two' } },
-    { id: '4-1', title: 'Add oil and flavor', text: 'Add the sunflower seed oil slowly from the side, and whisk for another 3 minutes.', say: { '3': 'three' } },
-    { id: '4-2', title: '', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' }, // same title as 4-1, so not read twice
-    { id: '5', title: 'Mix with flour', text: 'Add flour in 3–4 times. Mix gently.', say: { '3–4': 'three to four' } },
-    { id: '6', title: 'Fill the cups and bake', text: 'Spoon the batter into cupcake cases. Bake at 180°C for 16 minutes.', say: { '180°C': 'one hundred eighty degrees', '16': 'sixteen' } },
+    { id: '1', slide: 8, title: 'Prepare the liquids', text: 'Mix milk and honey. Heat and let it cool.' },
+    { id: '2', slide: 9, title: 'Prepare the dry ingredients', text: 'Mix and sieve cake flour, baking powder, and salt.' },
+    { id: '3', slide: 10, title: 'Whisk the eggs and sugar', text: 'Whisk eggs on high speed for 2 minutes. Add sugar and mix until creamy.', say: { '2': 'two' } },
+    { id: '4-1', slide: 11, title: 'Add oil and flavor', text: 'Add the sunflower seed oil slowly from the side, and whisk for another 3 minutes.', say: { '3': 'three' } },
+    { id: '4-2', slide: 12, title: '', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' }, // same title as 4-1, so not read twice
+    { id: '5', slide: 13, title: 'Mix with flour', text: 'Add flour in 3–4 times. Mix gently.', say: { '3–4': 'three to four' } },
+    { id: '6', slide: 14, title: 'Fill the cups and bake', text: 'Spoon the batter into cupcake cases. Bake at 180°C for 16 minutes.', say: { '180°C': 'one hundred eighty degrees', '16': 'sixteen' } },
   ];
   const CARD_IDS = CARDS.map(c => c.id);
 
@@ -188,7 +199,7 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
     add(card.text, false);
     const spoken = s => split(s).map(speak).join(' ');
     const referenceText = (card.title ? spoken(card.title) + '. ' : '') + spoken(card.text);
-    return { id: card.id, title: card.title, tokens, referenceText };
+    return { id: card.id, slide: card.slide, title: card.title, tokens, referenceText };
   }
 
   // How many tokens (from the start) to light up for the live text. Visual only:
@@ -422,6 +433,27 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
   window.addEventListener('online', () => Scores.flush());
   setInterval(() => Scores.flush(), 30000);
 
+  // ---------- the lesson slide above the card (deck in embed mode, same origin) ----------
+  const Frame = {
+    el: null, ready: false, want: 0,
+    show(n) {
+      this.want = n;
+      if (!this.el) {
+        this.el = $('#slideFrame');
+        this.el.addEventListener('load', () => { this.ready = true; this.post({ goto: this.want }); });
+        this.el.src = '/?embed=' + n;
+        return;
+      }
+      if (this.ready) this.post({ goto: n });
+    },
+    // stop any voice or read-along playing in the slide (before Listen and before recording)
+    hush() { if (this.ready) this.post({ hush: true }); },
+    post(msg) {
+      try { this.el.contentWindow.postMessage(Object.assign({ type: 'deck' }, msg), location.origin); }
+      catch (e) { console.error('slide frame', e); }
+    },
+  };
+
   // ---------- state ----------
   const cards = C.CARDS.map(C.prepare);
   const grpOk = n => Number.isInteger(n) && n >= 1 && n <= 6;
@@ -438,6 +470,7 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
   function message(text) { $('#msgText').textContent = text; $('#msg').hidden = false; }
   function status(text, live) { const el = $('#status'); el.textContent = text; el.classList.toggle('live', !!live); }
   function speak(text) {
+    Frame.hush();
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US'; u.rate = 0.85;
@@ -486,12 +519,14 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
     $('#nextBtn').hidden = state === 'reading' || !hasBest;
     $('#nextBtn').textContent = last ? 'Finish' : 'Next';
     $('#grpBtn').disabled = $('#whoBtn').disabled = state === 'reading';
+    document.body.classList.toggle('reading', state === 'reading');
   }
 
   function openCard(i) {
     S.i = i; S.tries = 0;
     const c = cards[i], title = $('#cardTitle'), sent = $('#sentence');
     $('#stepNo').textContent = `Step ${c.id}`;
+    Frame.show(c.slide);
     title.textContent = ''; sent.textContent = '';
     c.tokens.forEach((t, k) => {
       const sp = document.createElement('span');
@@ -525,6 +560,7 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
     const run = ++S.run, c = cards[S.i];
     S.reading = true;
     try { speechSynthesis.cancel(); } catch { /* no TTS */ }
+    Frame.hush();
     paint(null); $('#stars').textContent = ''; $('#feedback').textContent = '';
     setButtons('reading');
     try {

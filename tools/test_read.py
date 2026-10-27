@@ -16,11 +16,21 @@ import pathlib
 import sys
 import threading
 
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, expect
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SITE = ROOT / 'dist' / 'site'
 CARDS = ['1', '2', '3', '4-1', '4-2', '5', '6']
+SLIDES = ['s-step1', 's-step2', 's-step3', 's-step41', 's-step42', 's-step5', 's-step6']  # deck slide per card
+
+# Records speechSynthesis calls instead of speaking; each utterance 'ends' after 30 ms.
+FAKE_TTS = '''
+window.__spoken = [];
+Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
+  getVoices: () => [], cancel() {}, addEventListener() {},
+  speak(u) { window.__spoken.push(u.text); setTimeout(() => u.onend && u.onend({}), 30); },
+} });
+'''
 
 
 def serve():
@@ -40,7 +50,10 @@ async def student(page, base, out, posted):
     assert await page.inner_text('#seatShow') == '12'
     await page.screenshot(path=str(out / '1-seat.png'))
     await page.click('#startBtn')
+    slide = page.frame_locator('#slideFrame')
+    await expect(slide.locator('#navbtns')).to_be_hidden()  # embed mode: no deck chrome
     for i, card in enumerate(CARDS):
+        await expect(slide.locator('.slide.is-active')).to_have_id(SLIDES[i], timeout=15000)
         await page.click('#readBtn')
         await page.wait_for_selector('#nextBtn:not([hidden])', timeout=15000)
         if i == 0:
@@ -80,6 +93,28 @@ async def teacher(page, base, out):
     await page.screenshot(path=str(out / '4-teacher.png'), full_page=True)
 
 
+async def deck_voice(browser, base, out, errors):
+    """The class deck: Read together speaks the sentence, the speaker button reads the script."""
+    page = await browser.new_page(viewport={'width': 1280, 'height': 720})
+    page.on('pageerror', lambda e: errors.append('deck: ' + str(e)))
+    await page.add_init_script(FAKE_TTS)
+    await page.route('**/fonts.googleapis.com/**', lambda r: r.fulfill(body='', content_type='text/css'))
+    await page.goto(base + '/#8')
+    await page.wait_for_timeout(1200)
+    await page.click('#s-step1 .read-row button')
+    await page.wait_for_timeout(300)
+    spoken = await page.evaluate('window.__spoken')
+    assert spoken[-1] == 'Mix milk and honey. Heat and let it cool.', spoken
+    await page.click('#nbVoice')
+    await page.wait_for_function("document.querySelector('#nbVoice').getAttribute('aria-pressed') === 'false'", timeout=10000)
+    spoken = await page.evaluate('window.__spoken')
+    assert "Now, let's look at step one." in spoken, spoken
+    assert 'Group 1, please read Step 1 together.' in spoken, spoken      # grey cue removed
+    assert not any(t.startswith('Lab:') for t in spoken), spoken           # cue-only lines skipped
+    await page.screenshot(path=str(out / '5-deck-step1.png'))
+    await page.close()
+
+
 async def main(out):
     out.mkdir(parents=True, exist_ok=True)
     httpd = serve()
@@ -107,6 +142,7 @@ async def main(out):
         await page.route('**/fonts.googleapis.com/**', lambda r: r.fulfill(body='', content_type='text/css'))
         await student(page, base, out, posted)
         await teacher(page, base, out)
+        await deck_voice(browser, base, out, errors)
         await browser.close()
     httpd.shutdown()
     if errors:

@@ -7,14 +7,15 @@
   // Reading cards = the step slides of the deck (src/index.src.html, .instr text).
   // Keep in sync with the deck and with CARD_IDS in worker/index.mjs.
   // say: display word (without trailing punctuation) -> how it is spoken (Azure reference text).
+  // slide: the deck slide shown above the card (1-based, same as the deck's #N address).
   const CARDS = [
-    { id: '1', title: 'Prepare the liquids', text: 'Mix milk and honey. Heat and let it cool.' },
-    { id: '2', title: 'Prepare the dry ingredients', text: 'Mix and sieve cake flour, baking powder, and salt.' },
-    { id: '3', title: 'Whisk the eggs and sugar', text: 'Whisk eggs on high speed for 2 minutes. Add sugar and mix until creamy.', say: { '2': 'two' } },
-    { id: '4-1', title: 'Add oil and flavor', text: 'Add the sunflower seed oil slowly from the side, and whisk for another 3 minutes.', say: { '3': 'three' } },
-    { id: '4-2', title: '', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' }, // same title as 4-1, so not read twice
-    { id: '5', title: 'Mix with flour', text: 'Add flour in 3–4 times. Mix gently.', say: { '3–4': 'three to four' } },
-    { id: '6', title: 'Fill the cups and bake', text: 'Spoon the batter into cupcake cases. Bake at 180°C for 16 minutes.', say: { '180°C': 'one hundred eighty degrees', '16': 'sixteen' } },
+    { id: '1', slide: 8, title: 'Prepare the liquids', text: 'Mix milk and honey. Heat and let it cool.' },
+    { id: '2', slide: 9, title: 'Prepare the dry ingredients', text: 'Mix and sieve cake flour, baking powder, and salt.' },
+    { id: '3', slide: 10, title: 'Whisk the eggs and sugar', text: 'Whisk eggs on high speed for 2 minutes. Add sugar and mix until creamy.', say: { '2': 'two' } },
+    { id: '4-1', slide: 11, title: 'Add oil and flavor', text: 'Add the sunflower seed oil slowly from the side, and whisk for another 3 minutes.', say: { '3': 'three' } },
+    { id: '4-2', slide: 12, title: '', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' }, // same title as 4-1, so not read twice
+    { id: '5', slide: 13, title: 'Mix with flour', text: 'Add flour in 3–4 times. Mix gently.', say: { '3–4': 'three to four' } },
+    { id: '6', slide: 14, title: 'Fill the cups and bake', text: 'Spoon the batter into cupcake cases. Bake at 180°C for 16 minutes.', say: { '180°C': 'one hundred eighty degrees', '16': 'sixteen' } },
   ];
   const CARD_IDS = CARDS.map(c => c.id);
 
@@ -55,7 +56,7 @@
     add(card.text, false);
     const spoken = s => split(s).map(speak).join(' ');
     const referenceText = (card.title ? spoken(card.title) + '. ' : '') + spoken(card.text);
-    return { id: card.id, title: card.title, tokens, referenceText };
+    return { id: card.id, slide: card.slide, title: card.title, tokens, referenceText };
   }
 
   // How many tokens (from the start) to light up for the live text. Visual only:
