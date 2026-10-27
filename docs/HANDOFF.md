@@ -3,7 +3,7 @@
 最後更新：2026-10-27。這份文件記錄到目前為止所有需求、決定、做法與尚未完成的事，讓新的工作階段不用回頭翻對話。
 
 ## 1. 一句話現況
-16 頁的互動 HTML 簡報已完成，發佈在 claude.ai Artifact（版本 5），使用者也部署到了 Cloudflare。**下一步：實作方案 B（AI 唸讀發音評分）**，規格在 `plan-b-pronunciation.md`。開工前要先問使用者 6 個問題，列在該文件裡。
+16 頁的互動 HTML 簡報已完成，發佈在 claude.ai Artifact（版本 5），使用者也部署到了 Cloudflare。**方案 B（Read & Check）已實作（2026-10-27）**：學生頁 `/read/`、老師頁 `/teacher/`、Worker API，規格在 `plan-b-pronunciation.md`。待使用者部署（Azure S0、D1、secret）並在 iPad 實測；老師 2026-10-30（五）試教。
 
 ## 2. 背景
 - 使用者幫一位國小英語老師製作「How to make vanilla cupcakes?」課堂簡報。老師原本用 Canva 風格的 PPT（`references/original-slides/` 共 13 張截圖）。
@@ -76,6 +76,9 @@
 ### 2026-10-26：老師想要 AI 唸讀評分
 原文、方案 A / B 分析、給老師的精簡版：見 `teacher-request-and-plans.md`。
 
+### 2026-10-27：方案 B 定案並實作
+老師回答：每組一台 iPad、每個學生都唸全部 7 張步驟卡（用 Slide 上的句子）、各自評分、成績要給老師看但不要後台。做法：同一支 Worker 提供 `/read/`、`/teacher/`、`/api/*`，成績存 D1，學生用組別＋座號辨識。查證發現 Azure F0 同時只能 1 個連線，所以要用 S0。
+
 ### 2026-10-27：打包 repo、決定做方案 B
 > 幫我整理一下目前所有內容，跟我上傳過的圖片還有這個網頁的所有程式，幫我打包成 repo 的樣貌，我之後會丟到新的 Session 處理，我不希望遺漏任何東西
 > 然後最後要決定做方案 B 了
@@ -116,10 +119,11 @@
 ## 8. 外部位置
 - claude.ai Artifact：https://claude.ai/artifact/NeuWpVPVjJJb1D7VcJ2ZFj（版本 5，分享設定為 Anyone with the link）。
 - 空白的 Slides artifact：83fbe32f-f1e5-490b-a42f-cf00a9944cdb（使用者建立，沒使用）。
-- Cloudflare：使用者自行部署（網址未提供）。
+- Cloudflare Worker `wispy-fog-b991`（https://wispy-fog-b991.stanley890314.workers.dev/）：之後一律 `npx wrangler@4 deploy`。
 - 使用者有 BSOS Present 的 MCP（present.bsos.co），可以用來發佈 ZIP 網站；發佈前須確認標題和網址。
 
 ## 9. 下一步
-1. 問使用者 `plan-b-pronunciation.md` 的「開工前要確認的問題」。
-2. 實作方案 B（依該文件的實作順序），保持現有簡報功能不變。
-3. 若要部署 token 端點，repo 需要加入 Cloudflare Pages Functions（`functions/api/speech-token.js`）或獨立 Worker，並更新 README 的部署說明。
+1. 使用者照 README「Read & Check」部署：Azure S0、D1、secret、`wrangler deploy`。
+2. 用學校 Wi-Fi＋學校 iPad 實測：麥克風權限、連換 3 位學生、網路是否擋 workers.dev / jsDelivr / Azure WebSocket。
+3. 實測 Step 3、4-1 慢慢唸會不會被截斷（單次 15 秒上限風險，`SCORING.silenceMs`）；依分數調整 `SCORING` 門檻。
+4. 之後再做：方案 A 退路、多班級區分、匯出 CSV、簡報上的 QR code。

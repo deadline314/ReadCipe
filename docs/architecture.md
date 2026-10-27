@@ -83,3 +83,10 @@ Modules.myLab = {
 | YouTube 內嵌（Play here） | 被擋（不能嵌其他網站） | 應可（未實測） | 很可能失敗（YouTube 要求來源網址，Error 153） |
 | 麥克風（方案 B） | 不可 | 可 | 不建議 |
 | localStorage（記住模式） | 可（可能被清空） | 可 | 可 |
+
+## Read & Check（學生頁 / 老師頁 / Worker）
+- `src/read-core.js`：純邏輯（`CARDS`、`SCORING`、`prepare`、`progress`、`fromAzure`、`rate`、`weakWords`、`summarize`、`toPayload`），建置時內嵌（佔位 `/*{{READCORE}}*/`），用 `node tools/test_read_core.js` 測試。
+- `src/read.src.html`：畫面切換（`[data-screen]`）、`AzureEngine` / `FakeEngine`（`?engine=fake`），介面是 `assess(card, { onPartial, signal }) -> Promise<Result>`；`Token`（快取 9 分鐘）；`Scores`（localStorage 佇列 `readcipe-pending`，離線補送）。每張卡在離開時上傳最好的一次。
+- `src/teacher.src.html`：`GET /api/scores` 每 10 秒更新；所有資料用 textContent 顯示（API 是公開的，不能當 HTML）。
+- `worker/index.mjs`：`/api/token`、`/api/score`（`parseScore` 驗證、D1 upsert 只保留高分）、`/api/scores`；其他路徑由 Static Assets 直接回應（`wrangler.jsonc` 的 `run_worker_first` 只含 `/api/*`）。
+- 測試：`node worker/test.mjs`、`python tools/test_read.py`（Playwright，假引擎＋mock API）。

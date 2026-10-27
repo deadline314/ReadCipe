@@ -45,6 +45,28 @@ python3 tools/extract_assets.py          # 選用：從原始截圖重新產生 
 | claude.ai Artifact | `dist/vanilla-cupcakes.html` | 現有網址 https://claude.ai/artifact/NeuWpVPVjJJb1D7VcJ2ZFj（目前分享設定為「Anyone with the link」） |
 | 離線 | `dist/site/index.html` | 用 Chrome / Edge 直接開啟 |
 
+## Read & Check（方案 B：AI 唸讀評分）
+
+網址：`/read/`（學生，iPad）、`/teacher/`（老師看成績）。簡報仍在 `/`。規格見 `docs/plan-b-pronunciation.md`。
+
+第一次部署：
+1. Azure 入口網站建立 Speech 資源：定價 **S0**（F0 同時只能 1 個連線，6 台 iPad 會失敗）、區域 East Asia，記下 KEY 1；在 Cost Management → Budgets 設預算警示。
+2. `npx wrangler@4 login`（登入擁有 stanley890314.workers.dev 的帳號），`npx wrangler@4 whoami` 確認。
+3. 在 Cloudflare Dashboard 打開 `wispy-fog-b991`，確認沒有連 Git、沒有在 Dashboard 設的變數（deploy 會覆蓋 Dashboard 設的變數）。
+4. `npx wrangler@4 d1 create readcipe`，把輸出的 `database_id` 貼進 `wrangler.jsonc`。
+5. `npx wrangler@4 d1 execute readcipe --remote --file worker/schema.sql`
+6. `npx wrangler@4 secret put AZURE_SPEECH_KEY`（貼金鑰）、`npx wrangler@4 secret put AZURE_SPEECH_REGION`（輸入 `eastasia`）。金鑰不要放進任何檔案或對話。
+7. `python tools/build.py && npx wrangler@4 deploy`。如果 `ratelimits` 報錯，刪掉 `wrangler.jsonc` 那一段再部署（程式沒有它也能運作）。
+8. 檢查 `/`、`/read/?engine=fake`、`/teacher/`；有問題用 `npx wrangler@4 tail` 看 log。
+
+之後更新：`python tools/build.py && npx wrangler@4 deploy`。不要再從 Dashboard 只上傳 `index.html`，會蓋掉 Worker 程式。
+
+測試：
+- `node tools/test_read_core.js`、`node worker/test.mjs`（純邏輯）
+- `python tools/test_read.py`（學生流程＋老師頁，假引擎，不需要 Azure）
+- 真的辨識：在 `.dev.vars` 寫 `AZURE_SPEECH_KEY=...` 和 `AZURE_SPEECH_REGION=eastasia`，`npx wrangler@4 d1 execute readcipe --local --file worker/schema.sql`，`npx wrangler@4 dev`，開 `http://localhost:8787/read/`。
+- 不開麥克風看畫面：`/read/?engine=fake`。
+
 在網站上（https）才能使用：YouTube 內嵌播放、F1 獨立講稿視窗、（方案 B 的）麥克風。claude.ai 預覽會擋這些，程式已有退路。
 
 ## 操作
