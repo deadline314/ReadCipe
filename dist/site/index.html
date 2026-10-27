@@ -1020,6 +1020,20 @@ function celebrate(n = 70) {
 const Voice = {
   ok: 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function',
   rate: 0.9, voice: null, tok: 0,
+  // Speaking speed in "units" (letters, plus a pause per sentence) per second at rate 1.
+  // Starts from a typical value and learns from every finished sentence, per browser.
+  ups: 16, learned: false,
+  load() {
+    const v = parseFloat(safe(() => localStorage.getItem('cupcake-voice-ups')));
+    if (v > 4 && v < 40) { this.ups = v; this.learned = true; }
+  },
+  learn(units, ms) {
+    const measured = units / (ms / 1000) / this.rate;
+    if (!(measured > 4 && measured < 40)) return; // ignore cut-off or stalled speech
+    this.ups = this.learned ? this.ups * 0.5 + measured * 0.5 : measured; // first sentence replaces the guess
+    this.learned = true;
+    safe(() => localStorage.setItem('cupcake-voice-ups', this.ups.toFixed(2)));
+  },
   pick() {
     if (this.voice) return this.voice;
     const vs = safe(() => speechSynthesis.getVoices()) || [];
@@ -1028,18 +1042,20 @@ const Voice = {
     return this.voice;
   },
   stop() { this.tok++; if (this.ok) safe(() => speechSynthesis.cancel()); },
-  // speak(text, { onWord(charIndex), onEnd() }); only the latest call gets callbacks
+  // speak(text, { onStart(), onWord(charIndex), onEnd() }); only the latest call gets callbacks
   speak(text, opts = {}) {
     if (!this.ok || !text) return false;
     this.stop();
     const tok = this.tok, u = new SpeechSynthesisUtterance(text), v = this.pick();
     u.lang = 'en-US'; u.rate = opts.rate || this.rate; if (v) u.voice = v;
+    u.onstart = () => { if (tok === this.tok && opts.onStart) safe(() => opts.onStart()); };
     u.onboundary = e => { if (tok === this.tok && e.name !== 'sentence' && opts.onWord) safe(() => opts.onWord(e.charIndex)); };
     u.onend = u.onerror = () => { if (tok === this.tok && opts.onEnd) safe(() => opts.onEnd()); };
     safe(() => speechSynthesis.speak(u));
     return true;
   }
 };
+Voice.load();
 if (Voice.ok) safe(() => speechSynthesis.addEventListener('voiceschanged', () => { Voice.voice = null; }));
 
 /* read-along: wrap words in spans, then light them up one by one */
@@ -1065,8 +1081,9 @@ const Reader = {
     $$('.w.lit').forEach(w => w.classList.remove('lit')); $$('.ing.reading').forEach(c => c.classList.remove('reading'));
     Voice.stop(); if (typeof Narrator !== 'undefined') Narrator.off();
   },
-  // Speak the sentence and light each word as it is spoken. Voices that send no word
-  // boundary events keep a steady pace instead.
+  // Speak the sentence and light each word as it is spoken. Voices that report word
+  // boundaries drive the light directly; for the others the words follow a timeline built
+  // from the measured speaking speed (Voice.ups), starting when the audio starts.
   words(el, ms = 520) {
     this.stop(); wrapWords(el);
     const ws = $$('.w', el), starts = [];
@@ -1077,17 +1094,37 @@ const Reader = {
       starts.push(text.length); text += t;
     });
     const clear = () => ws.forEach(w => w.classList.remove('lit'));
-    let synced = false;
+    if (!Voice.ok) { // silent: steady pace
+      ws.forEach((w, i) => this.timers.push(setTimeout(() => w.classList.add('lit'), i * ms)));
+      this.timers.push(setTimeout(clear, ws.length * ms + 1500));
+      return;
+    }
+    // timeline position of each word: letters before it plus a pause after each sentence
+    const PAUSE = 6, units = [];
+    let pauses = 0;
+    ws.forEach((w, i) => { units.push(starts[i] + pauses * PAUSE); if (/[.!?]$/.test(w.textContent)) pauses++; });
+    const total = text.length + Math.max(0, pauses - 1) * PAUSE;
+    let synced = false, ended = false, t0 = 0;
+    const timeline = () => {
+      if (t0) return;
+      t0 = performance.now();
+      const ups = Voice.ups * Voice.rate;
+      ws.forEach((w, i) => this.timers.push(setTimeout(() => { if (!synced && !ended) w.classList.add('lit'); }, units[i] / ups * 1000)));
+    };
     const spoken = Voice.speak(text, {
+      onStart: timeline,
       onWord: ci => {
         if (!synced) { synced = true; this.timers.forEach(clearTimeout); this.timers = []; }
         ws.forEach((w, i) => { if (starts[i] <= ci) w.classList.add('lit'); });
       },
-      onEnd: () => { if (synced) { ws.forEach(w => w.classList.add('lit')); this.timers.push(setTimeout(clear, 1200)); } }
+      onEnd: () => {
+        if (!synced && t0) Voice.learn(total, performance.now() - t0);
+        ended = true;
+        ws.forEach(w => w.classList.add('lit'));
+        this.timers.push(setTimeout(clear, 1200));
+      }
     });
-    const step = spoken ? 420 : ms; // a boundary event replaces this pace with the voice's own timing
-    ws.forEach((w, i) => this.timers.push(setTimeout(() => w.classList.add('lit'), i * step)));
-    this.timers.push(setTimeout(clear, ws.length * step + 1500));
+    if (spoken) this.timers.push(setTimeout(timeline, 1500)); // browsers without a start event: begin anyway
   },
   items(list, ms = 1700) {
     this.stop();

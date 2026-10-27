@@ -32,6 +32,18 @@ Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
 } });
 '''
 
+# Speaks at a fixed 60 ms per letter, fires start/end but no word boundaries.
+TIMED_TTS = '''
+window.__ended = 0;
+Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
+  getVoices: () => [], cancel() {}, addEventListener() {},
+  speak(u) {
+    setTimeout(() => { u.onstart && u.onstart({}); }, 50);
+    setTimeout(() => { window.__endAt = performance.now(); window.__ended++; u.onend && u.onend({}); }, 50 + u.text.length * 60);
+  },
+} });
+'''
+
 
 def serve():
     class Quiet(http.server.SimpleHTTPRequestHandler):
@@ -112,6 +124,30 @@ async def deck_voice(browser, base, out, errors):
     assert 'Group 1, please read Step 1 together.' in spoken, spoken      # grey cue removed
     assert not any(t.startswith('Lab:') for t in spoken), spoken           # cue-only lines skipped
     await page.screenshot(path=str(out / '5-deck-step1.png'))
+    await page.close()
+
+    # A voice without word-boundary events (like many online voices): after one sentence the
+    # highlight should learn the speed, so the last word lights close to when the speech ends.
+    page = await browser.new_page(viewport={'width': 1280, 'height': 720})
+    page.on('pageerror', lambda e: errors.append('deck: ' + str(e)))
+    await page.add_init_script(TIMED_TTS)
+    await page.route('**/fonts.googleapis.com/**', lambda r: r.fulfill(body='', content_type='text/css'))
+    await page.goto(base + '/#8')
+    await page.wait_for_timeout(1200)
+    btn = '#s-step1 .read-row button'
+    await page.click(btn)
+    await page.wait_for_function('window.__ended === 1', timeout=10000)
+    await page.wait_for_timeout(1500)
+    await page.evaluate("""() => {
+      const ws = [...document.querySelectorAll('#s-step1 .instr p .w')];
+      window.__lastLit = 0;
+      new MutationObserver(() => { if (ws[ws.length - 1].classList.contains('lit') && !window.__lastLit) window.__lastLit = performance.now(); })
+        .observe(ws[ws.length - 1], { attributes: true });
+    }""")
+    await page.click(btn)
+    await page.wait_for_function('window.__ended === 2', timeout=10000)
+    gap = await page.evaluate('window.__endAt - window.__lastLit')
+    assert 0 <= gap < 600, f'last word lit {gap:.0f} ms before the speech ended'
     await page.close()
 
 
