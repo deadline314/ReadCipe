@@ -397,6 +397,8 @@ body.drawing #drawbar{transform:translate(-50%,0)}
 #navbtns svg{width:24px;height:24px}
 @media (hover:hover) and (pointer:fine){#navbtns{opacity:.45;transition:opacity .2s}#navbtns:hover,#navbtns:focus-within{opacity:1}#navbtns button{width:40px;height:40px}#navbtns svg{width:20px;height:20px}}
 #counter{right:auto;left:max(14px,env(safe-area-inset-left,0px))}
+/* embed mode (?embed=N): one slide inside the Read & Check page, no deck chrome */
+body.embed #navbtns,body.embed #counter,body.embed #progress,body.embed #help,body.embed #notes,body.embed #drawbar{display:none!important}
 #notes{bottom:calc(72px + env(safe-area-inset-bottom,0px))}
 #draw-layer{touch-action:none}
 @media (max-width:700px){#drawbar .hint{display:none}#drawbar{gap:5px;padding:6px 8px}#help{display:none}}
@@ -895,10 +897,11 @@ body.drawing #drawbar{transform:translate(-50%,0)}
 <nav id="navbtns" aria-label="Slide controls">
   <button id="nbDraw" aria-pressed="false" aria-label="Draw mode" title="Draw mode (middle click)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 6l3 3"/></svg></button>
   <button id="nbNotes" aria-pressed="false" aria-label="Speaker notes" title="Notes (F1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></button>
+  <button id="nbVoice" aria-pressed="false" aria-label="Read the script aloud" title="Read the script aloud (N)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg></button>
   <button id="nbPrev" class="arrow" aria-label="Previous slide" title="Previous (←)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
   <button id="nbNext" class="arrow" aria-label="Next slide" title="Next (→)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
 </nav>
-<div id="help"><span><kbd>←</kbd> <kbd>→</kbd> or mouse wheel: change slide</span><span>Middle click: draw mode</span><span>Buttons at bottom right on phones</span><span><kbd>F1</kbd> notes</span><span><kbd>F</kbd> full screen</span></div>
+<div id="help"><span><kbd>←</kbd> <kbd>→</kbd> or mouse wheel: change slide</span><span>Middle click: draw mode</span><span>Buttons at bottom right on phones</span><span><kbd>F1</kbd> notes</span><span><kbd>N</kbd> read aloud</span><span><kbd>F</kbd> full screen</span></div>
 <div id="drawbar" role="toolbar" aria-label="Drawing tools">
   <button class="sw" style="background:#E0473F" data-c="#E0473F" aria-pressed="true" aria-label="Red pen"></button>
   <button class="sw" style="background:#5B30E6" data-c="#5B30E6" aria-pressed="false" aria-label="Purple pen"></button>
@@ -1004,6 +1007,34 @@ function celebrate(n = 70) {
     a.onfinish = () => d.remove();
   }
 }
+/* ---------- voice: browser text-to-speech ----------
+   Stand-in narrator until the recorded AI voice exists. speak() returns false when the
+   browser has no speech, so callers keep working silently. */
+const Voice = {
+  ok: 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function',
+  rate: 0.9, voice: null, tok: 0,
+  pick() {
+    if (this.voice) return this.voice;
+    const vs = safe(() => speechSynthesis.getVoices()) || [];
+    const us = vs.filter(v => /^en[-_]US/i.test(v.lang));
+    this.voice = us.find(v => /samantha|aria|jenny|google us english|zira/i.test(v.name)) || us[0] || null;
+    return this.voice;
+  },
+  stop() { this.tok++; if (this.ok) safe(() => speechSynthesis.cancel()); },
+  // speak(text, { onWord(charIndex), onEnd() }); only the latest call gets callbacks
+  speak(text, opts = {}) {
+    if (!this.ok || !text) return false;
+    this.stop();
+    const tok = this.tok, u = new SpeechSynthesisUtterance(text), v = this.pick();
+    u.lang = 'en-US'; u.rate = opts.rate || this.rate; if (v) u.voice = v;
+    u.onboundary = e => { if (tok === this.tok && e.name !== 'sentence' && opts.onWord) safe(() => opts.onWord(e.charIndex)); };
+    u.onend = u.onerror = () => { if (tok === this.tok && opts.onEnd) safe(() => opts.onEnd()); };
+    safe(() => speechSynthesis.speak(u));
+    return true;
+  }
+};
+if (Voice.ok) safe(() => speechSynthesis.addEventListener('voiceschanged', () => { Voice.voice = null; }));
+
 /* read-along: wrap words in spans, then light them up one by one */
 function wrapWords(el) {
   if (el.dataset.wrapped) return; el.dataset.wrapped = '1';
@@ -1022,16 +1053,41 @@ function wrapWords(el) {
 }
 const Reader = {
   timers: [],
-  stop() { this.timers.forEach(clearTimeout); this.timers = []; $$('.w.lit').forEach(w => w.classList.remove('lit')); $$('.ing.reading').forEach(c => c.classList.remove('reading')); },
+  stop() {
+    this.timers.forEach(clearTimeout); this.timers = [];
+    $$('.w.lit').forEach(w => w.classList.remove('lit')); $$('.ing.reading').forEach(c => c.classList.remove('reading'));
+    Voice.stop(); if (typeof Narrator !== 'undefined') Narrator.off();
+  },
+  // Speak the sentence and light each word as it is spoken. Voices that send no word
+  // boundary events keep a steady pace instead.
   words(el, ms = 520) {
     this.stop(); wrapWords(el);
-    const ws = $$('.w', el);
-    ws.forEach((w, i) => this.timers.push(setTimeout(() => w.classList.add('lit'), i * ms)));
-    this.timers.push(setTimeout(() => ws.forEach(w => w.classList.remove('lit')), ws.length * ms + 1500));
+    const ws = $$('.w', el), starts = [];
+    let text = ''; // punctuation-only pieces (e.g. a "." after a highlighted noun) join the previous word
+    ws.forEach(w => {
+      const t = w.textContent;
+      if (text && !/^[^A-Za-z0-9]+$/.test(t)) text += ' ';
+      starts.push(text.length); text += t;
+    });
+    const clear = () => ws.forEach(w => w.classList.remove('lit'));
+    let synced = false;
+    const spoken = Voice.speak(text, {
+      onWord: ci => {
+        if (!synced) { synced = true; this.timers.forEach(clearTimeout); this.timers = []; }
+        ws.forEach((w, i) => { if (starts[i] <= ci) w.classList.add('lit'); });
+      },
+      onEnd: () => { if (synced) { ws.forEach(w => w.classList.add('lit')); this.timers.push(setTimeout(clear, 1200)); } }
+    });
+    const step = spoken ? 420 : ms; // a boundary event replaces this pace with the voice's own timing
+    ws.forEach((w, i) => this.timers.push(setTimeout(() => w.classList.add('lit'), i * step)));
+    this.timers.push(setTimeout(clear, ws.length * step + 1500));
   },
   items(list, ms = 1700) {
     this.stop();
-    list.forEach((el, i) => this.timers.push(setTimeout(() => { list.forEach(x => x.classList.remove('reading')); el.classList.add('reading'); }, i * ms)));
+    list.forEach((el, i) => this.timers.push(setTimeout(() => {
+      list.forEach(x => x.classList.remove('reading')); el.classList.add('reading');
+      const nm = $('.nm', el); Voice.speak((nm || el).textContent.trim());
+    }, i * ms)));
     this.timers.push(setTimeout(() => list.forEach(x => x.classList.remove('reading')), list.length * ms));
   }
 };
@@ -2129,6 +2185,9 @@ function segDist(px, py, ax, ay, bx, by) {
 /* =========================================================
    Deck: navigation, scaling, notes
    ========================================================= */
+// ?embed=N : show only slide N (1-based) inside the Read & Check page. The parent page
+// moves it with postMessage({ type: 'deck', goto: N }) and silences it with { hush: true }.
+const EMBED = (() => { const n = parseInt(safe(() => new URLSearchParams(location.search).get('embed')) || '', 10); return n > 0 ? n : 0; })();
 const Deck = {
   slides: $$('.slide'), idx: 0, lock: 0, wheelAcc: 0,
   init() {
@@ -2148,7 +2207,7 @@ const Deck = {
       }
     });
     Speed.mount();
-    const h = parseInt((location.hash || '').replace(/\D/g, ''), 10);
+    const h = EMBED || parseInt((location.hash || '').replace(/\D/g, ''), 10);
     this.go(Number.isFinite(h) ? h - 1 : 0, true);
   },
   go(n, first) {
@@ -2156,7 +2215,7 @@ const Deck = {
     if (n === this.idx && !first) return;
     const prev = this.slides[this.idx], next = this.slides[n];
     if (!first) { const m = Modules[prev.dataset.mod]; m && m.leave && safe(() => m.leave()); }
-    Reader.stop(); $$('.overlay', stage).forEach(o => o.remove()); Auto.enteredAt = performance.now();
+    Reader.stop(); Narrator.stop(); $$('.overlay', stage).forEach(o => o.remove()); Auto.enteredAt = performance.now();
     this.slides.forEach((s, i) => { s.classList.toggle('is-active', i === n); s.classList.toggle('is-before', i < n); s.classList.remove('play'); });
     void next.offsetWidth; next.classList.add('play');
     this.idx = n;
@@ -2294,9 +2353,43 @@ const Notes = {
   }
 };
 
+/* Read the current slide's script aloud (the <p> lines of its notes, without the grey cues).
+   Stops on slide change; never changes slides by itself. */
+const Narrator = {
+  on: false, tok: 0, timer: 0,
+  lines(i) {
+    const n = $('.notes', Deck.slides[i]);
+    if (!n) return [];
+    return $$('p', n).filter(p => !p.classList.contains('cue')).map(p => {
+      const c = p.cloneNode(true); $$('.cue', c).forEach(x => x.remove());
+      return c.textContent.replace(/\s+/g, ' ').trim();
+    }).filter(Boolean);
+  },
+  play() {
+    const lines = this.lines(Deck.idx);
+    if (!Voice.ok) { toast('This browser cannot read aloud.'); return; }
+    if (!lines.length) { toast('No script on this slide.'); return; }
+    Reader.stop();
+    const tok = ++this.tok; let k = 0;
+    this.on = true; this.sync();
+    const next = () => {
+      if (tok !== this.tok) return;
+      if (k >= lines.length) { this.off(); return; }
+      Voice.speak(lines[k++], { onEnd: () => { this.timer = setTimeout(next, 350); } });
+    };
+    next();
+  },
+  stop() { const was = this.on; this.off(); if (was) Voice.stop(); },
+  // reset the state only (used when something else takes over the voice)
+  off() { this.tok++; clearTimeout(this.timer); this.on = false; this.sync(); },
+  toggle() { this.on ? this.stop() : this.play(); },
+  sync() { const b = $('#nbVoice'); if (b) b.setAttribute('aria-pressed', String(this.on)); }
+};
+
 /* ---------- input ---------- */
 const isTyping = t => t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.type !== 'range');
 window.addEventListener('keydown', e => {
+  if (EMBED) return; // embedded slide: the Read & Check page owns navigation
   if (e.key === 'F1') { e.preventDefault(); Notes.toggle(); return; }
   if (isTyping(e.target)) { if (e.key === 'Escape') e.target.blur(); return; }
   switch (e.key) {
@@ -2307,9 +2400,11 @@ window.addEventListener('keydown', e => {
     case 'Escape': if (Lightbox.isOpen) Lightbox.close(); else if (Notes.on) Notes.show(false); else if (Draw.on) Draw.toggle(false); break;
     case 'f': case 'F': if (!e.ctrlKey && !e.metaKey) safe(() => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => toast('Full screen is not available here.'))); break;
     case 'c': case 'C': if (Draw.on) Draw.clearPage(); break;
+    case 'n': case 'N': if (!e.ctrlKey && !e.metaKey && !e.altKey) Narrator.toggle(); break;
   }
 }, true);
 window.addEventListener('wheel', e => {
+  if (EMBED) return;
   if (e.target.closest && e.target.closest('#notes')) return;
   e.preventDefault();
   const now = performance.now();
@@ -2319,7 +2414,7 @@ window.addEventListener('wheel', e => {
   clearTimeout(Deck._wt); Deck._wt = setTimeout(() => { Deck.wheelAcc = 0; }, 200);
 }, { passive: false });
 // middle click toggles draw mode (and blocks browser autoscroll)
-window.addEventListener('mousedown', e => { if (e.button === 1) { e.preventDefault(); Draw.toggle(); } }, true);
+window.addEventListener('mousedown', e => { if (e.button === 1 && !EMBED) { e.preventDefault(); Draw.toggle(); } }, true);
 window.addEventListener('auxclick', e => { if (e.button === 1) e.preventDefault(); });
 window.addEventListener('contextmenu', e => { if (Draw.on) e.preventDefault(); });
 window.addEventListener('resize', () => Deck.fit());
@@ -2334,8 +2429,18 @@ $('#nbPrev').addEventListener('click', () => Deck.prev());
 $('#nbNext').addEventListener('click', () => Deck.next());
 $('#nbNotes').addEventListener('click', () => Notes.toggle());
 $('#nbDraw').addEventListener('click', () => Draw.toggle());
+$('#nbVoice').addEventListener('click', () => Narrator.toggle());
 $$('#navbtns button').forEach(b => b.addEventListener('mousedown', e => { if (e.button === 0) e.preventDefault(); }));
 
-Deck.fit(); Draw.init(); Deck.init(); showHelp();
+if (EMBED) {
+  document.body.classList.add('embed');
+  window.addEventListener('message', e => {
+    if (e.origin !== location.origin || !e.data || e.data.type !== 'deck') return;
+    if (e.data.hush) Reader.stop();
+    const n = parseInt(e.data.goto, 10);
+    if (n > 0) Deck.go(n - 1);
+  });
+}
+Deck.fit(); Draw.init(); Deck.init(); if (!EMBED) showHelp();
 })();
 </script>
