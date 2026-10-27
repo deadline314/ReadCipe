@@ -1,0 +1,139 @@
+<meta charset="utf-8">
+<title>Reading Scores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Teacher view of today's Read & Check scores. Read-only, refreshes every 10 s. */
+:root{--paper:#FCE7D6;--grid:#FFF6EE;--ink:#3B2A28;--brown:#6A3C3A;--apricot:#F2B184;--lemon:#F7E35C;
+  --mint:#6CB98A;--verb:#E0473F;--miss:#A89A96;--display:'Fredoka',system-ui,sans-serif;--body:'Nunito',system-ui,sans-serif}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--body);color:var(--ink);background:var(--paper)}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:16px 20px;background:#fff;border-bottom:3px solid var(--apricot);position:sticky;top:0}
+h1{font-family:var(--display);color:var(--brown);margin:0;font-size:30px;flex:1}
+label{font-weight:800}
+input,button{font:inherit;font-weight:800;padding:6px 12px;border-radius:12px;border:2px solid #E7B48C;background:#FFF3E6;color:var(--brown)}
+button{cursor:pointer}
+#updated{color:#8a6f6a;font-weight:700}
+#updated.off{color:var(--verb)}
+main{padding:16px 20px;display:grid;gap:18px;max-width:1100px;margin:0 auto}
+.grp{background:#fff;border-radius:20px;padding:14px 16px;overflow-x:auto}
+.grp h2{font-family:var(--display);color:var(--brown);margin:0 0 8px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid #F3DCCB}
+th{font-size:14px;color:#8a6f6a}
+tr.seat{cursor:pointer}
+tr.seat:hover{background:#FFF8EF}
+td.st{color:#F2B01E;font-size:18px;letter-spacing:1px;white-space:nowrap}
+td.st.no{color:var(--miss)}
+td.st.none{color:#ddd}
+td.done{font-weight:800}
+td.done.all{color:var(--mint)}
+tr.detail td{text-align:left;background:#FFF8EF;font-weight:700}
+.weak{display:inline-block;background:#FDE7E6;color:var(--verb);border-radius:10px;padding:2px 10px;margin:2px 4px}
+#empty{text-align:center;font-size:20px;color:#8a6f6a;padding:40px}
+</style>
+<header>
+  <h1>Reading scores</h1>
+  <label>Day <input type="date" id="day"></label>
+  <button id="refresh">Refresh</button>
+  <span id="updated"></span>
+</header>
+<main id="groups"></main>
+<p id="empty" hidden>No scores yet for this day.</p>
+<script>
+/*{{READCORE}}*/
+(() => {
+  'use strict';
+  const C = window.ReadCore, CARDS = C.CARD_IDS, READ_MIN = C.SCORING.readCompleteness;
+  const $ = s => document.querySelector(s);
+  const open = new Set();   // seats whose detail row is open (kept across refreshes)
+  let rows = [];
+
+  // Build DOM with text only: row data comes from a public API, never insert it as HTML.
+  function el(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    Object.assign(e, props || {});
+    kids.flat(Infinity).forEach(k => e.append(k instanceof Node ? k : document.createTextNode(String(k))));
+    return e;
+  }
+  const taipeiToday = () => new Date(Date.now() + 8 * 3600e3).toISOString().slice(0, 10);
+  const isRead = r => (r.completeness ?? 0) >= READ_MIN;
+
+  function students() {
+    const by = new Map();
+    for (const r of rows) {
+      const s = by.get(r.seat) || { seat: r.seat, grp: r.grp, at: 0, cards: {} };
+      s.cards[r.card] = r;
+      if (r.updated_at > s.at) { s.at = r.updated_at; s.grp = r.grp; } // latest group wins
+      by.set(r.seat, s);
+    }
+    return [...by.values()].sort((a, b) => a.grp - b.grp || a.seat - b.seat);
+  }
+
+  function render() {
+    const list = students(), main = $('#groups');
+    main.textContent = '';
+    $('#empty').hidden = list.length > 0;
+    for (const grp of [...new Set(list.map(s => s.grp))]) {
+      const body = el('tbody');
+      for (const s of list.filter(x => x.grp === grp)) {
+        const got = CARDS.map(id => s.cards[id]).filter(Boolean);
+        const done = got.filter(isRead).length;
+        const avg = got.length ? Math.round(got.reduce((n, r) => n + r.overall, 0) / got.length) : '';
+        const tr = el('tr', { className: 'seat', title: 'Click for words to practice' },
+          el('td', {}, el('b', {}, s.seat)),
+          CARDS.map(id => {
+            const r = s.cards[id];
+            if (!r) return el('td', { className: 'st none', textContent: '—' });
+            return el('td', {
+              className: 'st' + (isRead(r) ? '' : ' no'),
+              textContent: '★'.repeat(r.stars) + '☆'.repeat(3 - r.stars),
+              title: `Score ${r.overall} · read ${r.completeness ?? '?'}% · tries ${r.attempts}`,
+            });
+          }),
+          el('td', { className: 'done' + (done === CARDS.length ? ' all' : ''), textContent: `${done} / ${CARDS.length}` }),
+          el('td', { textContent: avg }));
+        tr.addEventListener('click', () => { open.has(s.seat) ? open.delete(s.seat) : open.add(s.seat); render(); });
+        body.append(tr);
+        if (open.has(s.seat)) {
+          const weak = [...new Set(got.flatMap(r => r.weak || []))];
+          body.append(el('tr', { className: 'detail' }, el('td', { colSpan: CARDS.length + 3 },
+            weak.length ? ['Words to practice: ', weak.map(w => el('span', { className: 'weak', textContent: w }))] : 'No words to practice.')));
+        }
+      }
+      main.append(el('section', { className: 'grp' },
+        el('h2', { textContent: `Group ${grp}` }),
+        el('table', {},
+          el('thead', {}, el('tr', {}, el('th', { textContent: 'Seat' }), CARDS.map(id => el('th', { textContent: `Step ${id}` })),
+            el('th', { textContent: 'Read' }), el('th', { textContent: 'Avg' }))),
+          body)));
+    }
+  }
+
+  let loading = false;
+  async function load() {
+    if (loading) return;
+    loading = true;
+    try {
+      const r = await fetch('/api/scores?day=' + encodeURIComponent($('#day').value), { cache: 'no-store' });
+      if (!r.ok) throw new Error('http ' + r.status);
+      rows = (await r.json()).rows || [];
+      render();
+      $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+      $('#updated').classList.remove('off');
+    } catch (e) {
+      console.warn('scores', e);
+      $('#updated').textContent = 'Cannot load scores, retrying…';
+      $('#updated').classList.add('off');
+    } finally { loading = false; }
+  }
+
+  $('#day').value = taipeiToday();
+  $('#day').addEventListener('change', () => { open.clear(); load(); });
+  $('#refresh').addEventListener('click', load);
+  setInterval(load, 10000);
+  load();
+})();
+</script>

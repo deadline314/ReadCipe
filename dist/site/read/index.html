@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Read &amp; Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Read & Check: student page for the group iPad. Same look as the deck (peach grid paper, Fredoka). */
+:root{
+  --paper:#FCE7D6; --grid:#FFF6EE; --ink:#3B2A28; --brown:#6A3C3A; --rose:#EBA3A3; --apricot:#F2B184;
+  --card:#FFFFFF; --lemon:#F7E35C; --verb:#E0473F; --noun:#5B30E6; --mint:#6CB98A; --sky:#7FB3E0;
+  --good:#3E9A63; --ok:#D99A16; --bad:#E0473F; --miss:#A89A96;
+  --display:'Fredoka',system-ui,sans-serif; --body:'Nunito',system-ui,sans-serif;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--body);color:var(--ink);background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 2px,transparent 2px),linear-gradient(90deg,var(--grid) 2px,transparent 2px);
+  background-size:36px 36px;-webkit-text-size-adjust:100%}
+button{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#app{max-width:1000px;margin:0 auto;padding:16px 20px 32px;min-height:100vh;display:flex;flex-direction:column}
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-bottom:12px}
+.brand{font-family:var(--display);font-weight:700;font-size:28px;color:var(--brown);grid-column:2}
+#whoBtn{grid-column:1;justify-self:start} #grpBtn{grid-column:3;justify-self:end}
+.chip{background:#fff;border:3px solid #E7B48C;border-radius:999px;padding:6px 16px;font-weight:800;color:var(--brown);cursor:pointer}
+.chip:disabled{opacity:.4}
+h1{font-family:var(--display);font-weight:700;color:var(--brown);text-align:center;font-size:38px;margin:6px 0 12px}
+section{flex:1;display:flex;flex-direction:column;align-items:center}
+.pad{display:grid;gap:14px;width:100%;max-width:720px}
+#groupPad{grid-template-columns:repeat(3,1fr)}
+#groupPad button{font-family:var(--display);font-size:44px;height:120px;border-radius:28px;background:#fff;border:4px solid var(--apricot);color:var(--brown);cursor:pointer}
+#seatPad{grid-template-columns:repeat(8,1fr);gap:10px}
+#seatPad button{font-family:var(--display);font-size:26px;height:56px;border-radius:16px;background:#fff;border:3px solid #E7B48C;color:var(--brown);cursor:pointer}
+#seatPad button.on{background:var(--lemon);border-color:var(--brown)}
+.seat-show{font-family:var(--display);font-size:48px;line-height:1;color:var(--noun);min-height:52px;margin-bottom:12px}
+.girl{width:84px;height:auto}
+.btn{font-family:var(--body);font-weight:800;font-size:24px;color:#4E302C;background:#FFF3E6;border:3px solid #E7B48C;border-radius:999px;padding:14px 30px;cursor:pointer}
+.btn.go{background:var(--mint);border-color:#3E8A5E;color:#fff}
+.btn.big{font-size:30px;padding:16px 46px;margin-top:16px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn:focus-visible,.chip:focus-visible,.pad button:focus-visible{outline:4px solid var(--noun);outline-offset:3px}
+.dots{display:flex;gap:10px;margin:4px 0 14px}
+.dots i{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E7B48C}
+.dots i.done{background:var(--mint);border-color:#3E8A5E}
+.dots i.now{background:var(--lemon);border-color:var(--brown);transform:scale(1.25)}
+.card{background:var(--card);border-radius:28px;padding:26px 32px;width:100%;box-shadow:0 6px 0 rgba(106,60,58,.15)}
+.step-no{font-family:var(--display);font-weight:700;font-size:26px;color:var(--apricot);-webkit-text-stroke:1px var(--brown)}
+.hl{display:inline-block;background:var(--lemon);border-radius:10px;padding:2px 12px;font-family:var(--display);font-weight:600;font-size:34px;margin:8px 0 6px;color:var(--brown)}
+.sentence{font-size:40px;line-height:1.5;font-weight:800;margin:6px 0 0}
+.w{border-radius:8px;padding:0 3px;transition:background-color .2s,color .2s}
+.w.lit{background:#FFF3B0}
+.w.good{color:var(--good)} .w.ok{color:var(--ok)} .w.bad{color:var(--bad);text-decoration:underline wavy}
+.w.miss{color:var(--miss);text-decoration:line-through}
+.status{font-family:var(--display);font-size:34px;color:var(--noun);min-height:48px;margin-top:14px}
+.status.live::before{content:'';display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--verb);margin-right:12px;vertical-align:middle;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.4);opacity:.6}}
+.stars{font-size:54px;color:#F2B01E;letter-spacing:6px;min-height:64px}
+.feedback{font-size:28px;font-weight:800;color:var(--brown);margin:0 0 6px;min-height:38px;text-align:center}
+.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.stars.big{font-size:72px}
+.badge{font-family:var(--display);font-size:32px;background:var(--lemon);border-radius:999px;padding:8px 28px;color:var(--brown);margin:8px 0 16px}
+.weak{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.weak button{font-size:28px;font-weight:800;background:#fff;border:3px solid var(--rose);border-radius:16px;padding:10px 20px;color:var(--verb);cursor:pointer}
+.weak button::before{content:'▶ ';font-size:20px;color:var(--brown)}
+.msg{position:fixed;inset:0;background:rgba(59,42,40,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.msg>div{background:#fff;border-radius:24px;padding:28px 32px;max-width:560px;text-align:center}
+.msg p{font-size:24px;font-weight:800;white-space:pre-line;margin:0 0 18px}
+.confetti{position:fixed;top:-20px;width:12px;height:18px;border-radius:3px;z-index:5;pointer-events:none;animation:fall 2.6s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:760px){
+  #seatPad{grid-template-columns:repeat(5,1fr)} .sentence{font-size:30px} .hl{font-size:26px} h1{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<main id="app">
+  <header class="top">
+    <button class="chip" id="whoBtn" hidden></button>
+    <span class="brand">Read &amp; Check</span>
+    <button class="chip" id="grpBtn" hidden></button>
+  </header>
+
+  <section data-screen="group" hidden>
+    <h1>Which group are you?</h1>
+    <div class="pad" id="groupPad"></div>
+  </section>
+
+  <section data-screen="seat" hidden>
+    <img class="girl" data-img="girl_pin.webp" alt="">
+    <h1>What is your seat number?</h1>
+    <div class="seat-show" id="seatShow">–</div>
+    <div class="pad" id="seatPad"></div>
+    <button class="btn go big" id="startBtn" disabled>Start</button>
+  </section>
+
+  <section data-screen="card" hidden>
+    <div class="dots" id="dots"></div>
+    <div class="card">
+      <div class="step-no" id="stepNo"></div>
+      <h2 class="hl" id="cardTitle"></h2>
+      <p class="sentence" id="sentence"></p>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="stars" id="stars"></div>
+    <p class="feedback" id="feedback"></p>
+    <div class="actions">
+      <button class="btn" id="listenBtn">Listen</button>
+      <button class="btn go big" id="readBtn">Start reading</button>
+      <button class="btn" id="cancelBtn" hidden>Cancel</button>
+      <button class="btn" id="againBtn" hidden>Try again</button>
+      <button class="btn go" id="nextBtn" hidden>Next</button>
+    </div>
+  </section>
+
+  <section data-screen="summary" hidden>
+    <h1 id="sumTitle"></h1>
+    <div class="stars big" id="sumStars"></div>
+    <div class="badge" id="sumBadge"></div>
+    <h2 id="sumWeakHead">Words to practice</h2>
+    <div class="weak" id="sumWeak"></div>
+    <button class="btn go big" id="nextKid">Next classmate</button>
+  </section>
+
+  <div class="msg" id="msg" hidden><div><p id="msgText"></p><button class="btn go" id="msgBtn">OK</button></div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.52.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js" defer></script>
+<script>
+/* ReadCipe "Read & Check": pure logic, no DOM and no network.
+   tools/build.py inlines this file into src/read.src.html and src/teacher.src.html
+   (placeholder comment READCORE); tools/test_read_core.js tests it with node. */
+(function (root) {
+  'use strict';
+
+  // Reading cards = the step slides of the deck (src/index.src.html, .instr text).
+  // Keep in sync with the deck and with CARD_IDS in worker/index.mjs.
+  // say: display word (without trailing punctuation) -> how it is spoken (Azure reference text).
+  const CARDS = [
+    { id: '1', title: 'Prepare the liquids', text: 'Mix milk and honey. Heat and let it cool.' },
+    { id: '2', title: 'Prepare the dry ingredients', text: 'Mix and sieve cake flour, baking powder, and salt.' },
+    { id: '3', title: 'Whisk the eggs and sugar', text: 'Whisk eggs on high speed for 2 minutes. Add sugar and mix until creamy.', say: { '2': 'two' } },
+    { id: '4-1', title: 'Add oil and flavor', text: 'Add the sunflower seed oil slowly from the side, and whisk for another 3 minutes.', say: { '3': 'three' } },
+    { id: '4-2', title: '', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' }, // same title as 4-1, so not read twice
+    { id: '5', title: 'Mix with flour', text: 'Add flour in 3–4 times. Mix gently.', say: { '3–4': 'three to four' } },
+    { id: '6', title: 'Fill the cups and bake', text: 'Spoon the batter into cupcake cases. Bake at 180°C for 16 minutes.', say: { '180°C': 'one hundred eighty degrees', '16': 'sixteen' } },
+  ];
+  const CARD_IDS = CARDS.map(c => c.id);
+
+  // All thresholds in one place; tune after testing with real children's voices.
+  const SCORING = {
+    three: 85, two: 70, one: 50,   // overall (PronScore) needed for 3 / 2 / 1 stars
+    minCompleteness: 50,           // below this: 0 stars whatever the overall score
+    readCompleteness: 60,          // at or above this the card counts as "read" (teacher's main goal)
+    weak: 70,                      // words scored below this go to "words to practice"
+    maxWeakPerCard: 10, maxWeakSummary: 5,
+    maxTries: 3,                   // readings per card; the best one counts
+    silenceMs: 2500,               // pause that ends a reading (Azure segmentation silence)
+  };
+
+  const TRAIL = /[.,!?;:]+$/;
+  const norm = w => String(w).toLowerCase().replace(/[^a-z']/g, '');
+  // Numbers the recogniser may write as digits in live (partial) text.
+  const NUM = { '2': 'two', '3': 'three', '4': 'four', '16': 'sixteen', '180': 'one hundred eighty' };
+
+  function spokenWords(text) {
+    return String(text || '').split(/\s+/).flatMap(raw => {
+      const m = raw.match(/^(\d+)(°)?/);
+      if (m && NUM[m[1]]) return NUM[m[1]].split(' ').concat(m[2] ? ['degrees'] : []);
+      const w = norm(raw);
+      return w ? [w] : [];
+    });
+  }
+
+  function prepare(card) {
+    const say = card.say || {};
+    const speak = raw => { const key = raw.replace(TRAIL, ''); return say[key] != null ? say[key] + raw.slice(key.length) : raw; };
+    const split = s => String(s || '').split(/\s+/).filter(Boolean);
+    const tokens = [];
+    const add = (part, head) => split(part).forEach(raw => {
+      tokens.push({ text: raw, head, words: speak(raw).split(/\s+/).map(norm).filter(Boolean) });
+    });
+    add(card.title, true);
+    add(card.text, false);
+    const spoken = s => split(s).map(speak).join(' ');
+    const referenceText = (card.title ? spoken(card.title) + '. ' : '') + spoken(card.text);
+    return { id: card.id, title: card.title, tokens, referenceText };
+  }
+
+  // How many tokens (from the start) to light up for the live text. Visual only:
+  // each heard word may skip ahead at most 3 reference words, so noise does not jump far.
+  function progress(tokens, partial) {
+    const owner = [], ref = [];
+    tokens.forEach((t, i) => t.words.forEach(w => { ref.push(w); owner.push(i); }));
+    let p = 0;
+    for (const w of spokenWords(partial)) {
+      for (let j = p; j < Math.min(p + 4, ref.length); j++) if (ref[j] === w) { p = j + 1; break; }
+    }
+    return p === 0 ? 0 : owner[p - 1] + 1;
+  }
+
+  // Azure detail JSON -> per display token score. Inserted words are ignored; the rest are
+  // matched to the reference words in order. A token's score is its lowest word score.
+  function fromAzure(json, tokens) {
+    const best = (json && json.NBest && json.NBest[0]) || {};
+    const pa = best.PronunciationAssessment || {};
+    const got = (best.Words || []).filter(w => (w.PronunciationAssessment || {}).ErrorType !== 'Insertion');
+    let k = 0;
+    const out = tokens.map(t => {
+      let score = null, error = 'None';
+      t.words.forEach(() => {
+        const a = (got[k++] || {}).PronunciationAssessment;
+        if (!a || a.ErrorType === 'Omission') { error = 'Omission'; return; }
+        if (error === 'None' && a.ErrorType && a.ErrorType !== 'None') error = a.ErrorType;
+        if (typeof a.AccuracyScore === 'number') score = score == null ? a.AccuracyScore : Math.min(score, a.AccuracyScore);
+      });
+      if (error === 'Omission') score = null;
+      return { text: t.text, head: t.head, score: score == null ? null : Math.round(score), error };
+    });
+    const r = v => (typeof v === 'number' ? Math.round(v) : null);
+    return {
+      tokens: out,
+      scores: { accuracy: r(pa.AccuracyScore), fluency: r(pa.FluencyScore), completeness: r(pa.CompletenessScore), prosody: r(pa.ProsodyScore), overall: r(pa.PronScore) ?? 0 },
+    };
+  }
+
+  const clean = text => String(text).replace(/[^A-Za-z0-9'°–-]/g, '');
+
+  function weakWords(tokens, max = SCORING.maxWeakPerCard) {
+    const seen = new Set();
+    return tokens
+      .filter(t => t.error === 'Omission' || (t.score != null && t.score < SCORING.weak))
+      .map(t => ({ w: clean(t.text), s: t.score == null ? -1 : t.score }))
+      .filter(x => x.w)
+      .sort((a, b) => a.s - b.s)
+      .filter(x => { const key = x.w.toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; })
+      .slice(0, max)
+      .map(x => x.w);
+  }
+
+  function rate(result) {
+    const s = result.scores, c = s.completeness ?? 0, S = SCORING;
+    const stars = c < S.minCompleteness ? 0 : s.overall >= S.three ? 3 : s.overall >= S.two ? 2 : s.overall >= S.one ? 1 : 0;
+    const w = weakWords(result.tokens, 1)[0];
+    const feedback = stars === 3 ? 'Excellent reading!'
+      : stars === 2 ? (w ? `Great job! Try "${w}" again.` : 'Great job!')
+      : stars === 1 ? (w ? `Good try! Listen and read "${w}" one more time.` : 'Good try!')
+      : "Let's listen and try again.";
+    return { stars, read: c >= S.readCompleteness, feedback };
+  }
+
+  const better = (a, b) => (!a || b.result.scores.overall > a.result.scores.overall ? b : a);
+
+  function summarize(best) {
+    const ids = CARD_IDS.filter(id => best[id]);
+    const readCount = ids.filter(id => best[id].rate.read).length;
+    return {
+      stars: ids.reduce((n, id) => n + best[id].rate.stars, 0),
+      maxStars: CARD_IDS.length * 3,
+      readCount,
+      allRead: readCount === CARD_IDS.length,
+      weak: weakWords(ids.flatMap(id => best[id].result.tokens), SCORING.maxWeakSummary),
+    };
+  }
+
+  function toPayload(grp, seat, card, entry, attempts) {
+    const s = entry.result.scores;
+    return {
+      grp, seat, card, stars: entry.rate.stars, overall: s.overall,
+      accuracy: s.accuracy, fluency: s.fluency, completeness: s.completeness, prosody: s.prosody,
+      weak: weakWords(entry.result.tokens), attempts,
+    };
+  }
+
+  const api = { CARDS, CARD_IDS, SCORING, spokenWords, prepare, progress, fromAzure, weakWords, rate, better, summarize, toPayload };
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.ReadCore = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+(() => {
+  'use strict';
+  const C = window.ReadCore;
+  const IMG = {"girl_pin.webp": "data:image/webp;base64,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"};
+  const $ = s => document.querySelector(s);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const fail = code => Object.assign(new Error(code), { code });
+  document.querySelectorAll('img[data-img]').forEach(i => { const u = IMG[i.dataset.img]; if (u) i.src = u; });
+
+  // localStorage can throw (private mode, blocked storage): never let it break the page.
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+  };
+
+  const MSG = {
+    mic: 'Please ask your teacher to allow the microphone.\n請老師幫忙開啟麥克風：設定 > Safari > 麥克風 > 允許，然後重新整理。',
+    token: 'Please ask your teacher.\n請老師幫忙：無法連到評分服務，請檢查網路。',
+    sdk: 'Please check the internet and reload the page.\n請檢查網路後重新整理。',
+    nomatch: "I couldn't hear you. Hold the iPad closer and try again.",
+    canceled: "Something went wrong. Let's try again.",
+  busy: 'Too many groups are reading right now. Wait a moment and try again.',
+  };
+
+  // ---------- Azure token (10 min valid; cached 9 min, one retry) ----------
+  const Token = {
+    v: null,
+    async get() {
+      if (this.v && Date.now() - this.v.at < 9 * 60e3) return this.v;
+      for (let i = 0; i < 2; i++) {
+        try {
+          const r = await fetch('/api/token', { cache: 'no-store' });
+          if (r.ok) { const d = await r.json(); this.v = { token: d.token, region: d.region, at: Date.now() }; return this.v; }
+          console.error('token http', r.status);
+        } catch (e) { console.error('token', e); }
+      }
+      throw fail('token');
+    },
+    clear() { this.v = null; },
+  };
+
+  // ---------- engines: assess(card, { onPartial, signal }) -> Promise<Result> ----------
+  const classify = msg => fail(/permission|notallowed|denied/i.test(msg) ? 'mic' : 'canceled');
+
+  const AzureEngine = {
+    async assess(card, { onPartial, signal }) {
+      const sdk = window.SpeechSDK;
+      if (!sdk) throw fail('sdk');
+      const { token, region } = await Token.get();
+      if (signal.aborted) throw fail('cancel');
+      const cfg = sdk.SpeechConfig.fromAuthorizationToken(token, region);
+      cfg.speechRecognitionLanguage = 'en-US';
+      cfg.setProperty(sdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, String(C.SCORING.silenceMs));
+      const rec = new sdk.SpeechRecognizer(cfg, sdk.AudioConfig.fromDefaultMicrophoneInput());
+      const pa = new sdk.PronunciationAssessmentConfig(card.referenceText,
+        sdk.PronunciationAssessmentGradingSystem.HundredMark, sdk.PronunciationAssessmentGranularity.Word, true);
+      pa.enableProsodyAssessment = true;
+      pa.applyTo(rec);
+      rec.recognizing = (_, e) => { try { onPartial(e.result.text); } catch (err) { console.error(err); } };
+      try {
+        const result = await new Promise((resolve, reject) => {
+          signal.addEventListener('abort', () => reject(fail('cancel')), { once: true });
+          rec.recognizeOnceAsync(resolve, err => reject(classify(String(err))));
+        });
+        if (result.reason === sdk.ResultReason.RecognizedSpeech) {
+          return C.fromAzure(JSON.parse(result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult)), card.tokens);
+        }
+        if (result.reason === sdk.ResultReason.NoMatch) throw fail('nomatch');
+        const d = sdk.CancellationDetails.fromResult(result);
+        console.error('recognition canceled', d.reason, d.errorCode, d.errorDetails);
+        if (d.errorCode === sdk.CancellationErrorCode.AuthenticationFailure) Token.clear();
+        if (d.errorCode === sdk.CancellationErrorCode.TooManyRequests) throw fail('busy'); // over the Azure concurrency limit
+        throw classify(String(d.errorDetails || ''));
+      } finally {
+        try { rec.close(); } catch (e) { console.error('close', e); } // frees the microphone
+      }
+    },
+  };
+
+  // ?engine=fake: no microphone and fixed results, for tests and demos. The third word scores low.
+  const FakeEngine = {
+    assess(card, { onPartial, signal }) {
+      return new Promise((resolve, reject) => {
+        const words = card.tokens.map(t => t.text);
+        let i = 0;
+        const tick = setInterval(() => {
+          onPartial(words.slice(0, ++i).join(' '));
+          if (i < words.length) return;
+          clearInterval(tick);
+          resolve({
+            tokens: card.tokens.map((t, k) => ({ text: t.text, head: t.head, score: k === 2 ? 55 : 92, error: k === 2 ? 'Mispronunciation' : 'None' })),
+            scores: { accuracy: 88, fluency: 90, completeness: 100, prosody: 85, overall: 87 },
+          });
+        }, 40);
+        signal.addEventListener('abort', () => { clearInterval(tick); reject(fail('cancel')); }, { once: true });
+      });
+    },
+  };
+
+  const fake = new URLSearchParams(location.search).get('engine') === 'fake';
+  const engine = fake ? FakeEngine : AzureEngine;
+
+  // Ask for the microphone once per page load, so a denial gets a clear message.
+  let micOk = fake;
+  async function micCheck() {
+    if (micOk) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw fail('mic');
+    try { (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach(t => t.stop()); }
+    catch (e) { console.error('mic', e); throw fail('mic'); }
+    micOk = true;
+  }
+
+  // ---------- score upload queue (survives offline and reloads) ----------
+  const Scores = {
+    KEY: 'readcipe-pending', busy: false,
+    send(payload) {
+      const q = store.get(this.KEY, []);
+      q.push(payload);
+      store.set(this.KEY, q.slice(-200));
+      this.flush();
+    },
+    async flush() {
+      if (this.busy) return;
+      this.busy = true;
+      try {
+        for (let q = store.get(this.KEY, []); q.length; q = store.get(this.KEY, [])) {
+          let r;
+          try { r = await fetch('/api/score', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q[0]) }); }
+          catch (e) { console.warn('upload later', e); break; }
+          if (r.status >= 500 || r.status === 429) break; // try again later
+          if (!r.ok) console.error('score rejected', r.status, q[0]); // 4xx never succeeds: drop it
+          const now = store.get(this.KEY, []);
+          now.shift();
+          store.set(this.KEY, now);
+        }
+      } finally { this.busy = false; }
+    },
+  };
+  window.addEventListener('online', () => Scores.flush());
+  setInterval(() => Scores.flush(), 30000);
+
+  // ---------- state ----------
+  const cards = C.CARDS.map(C.prepare);
+  const grpOk = n => Number.isInteger(n) && n >= 1 && n <= 6;
+  const S = { grp: grpOk(store.get('readcipe-group', 0)) ? store.get('readcipe-group', 0) : 0, seat: 0, i: -1, tries: 0, best: {}, run: 0, ctrl: null, reading: false };
+
+  function show(name) {
+    document.querySelectorAll('[data-screen]').forEach(s => { s.hidden = s.dataset.screen !== name; });
+    $('#grpBtn').hidden = !S.grp || name === 'group';
+    $('#grpBtn').textContent = `Group ${S.grp}`;
+    $('#whoBtn').hidden = !(name === 'card' || name === 'summary');
+    $('#whoBtn').textContent = `Seat ${S.seat} · Change student`;
+  }
+
+  function message(text) { $('#msgText').textContent = text; $('#msg').hidden = false; }
+  function status(text, live) { const el = $('#status'); el.textContent = text; el.classList.toggle('live', !!live); }
+  function speak(text) {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = 0.85;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) { console.error('tts', e); }
+  }
+  const starText = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const spans = () => document.querySelectorAll('[data-screen="card"] .w');
+
+  // ---------- pads ----------
+  function buildPads() {
+    for (let n = 1; n <= 6; n++) {
+      const b = document.createElement('button');
+      b.textContent = n;
+      b.addEventListener('click', () => { S.grp = n; store.set('readcipe-group', n); toSeat(); });
+      $('#groupPad').append(b);
+    }
+    for (let n = 1; n <= 40; n++) {
+      const b = document.createElement('button');
+      b.textContent = n;
+      b.addEventListener('click', () => {
+        S.seat = n;
+        $('#seatShow').textContent = n;
+        document.querySelectorAll('#seatPad button').forEach(x => x.classList.toggle('on', x === b));
+        $('#startBtn').disabled = false;
+      });
+      $('#seatPad').append(b);
+    }
+  }
+
+  function toSeat() {
+    S.seat = 0;
+    $('#seatShow').textContent = '–';
+    document.querySelectorAll('#seatPad button.on').forEach(x => x.classList.remove('on'));
+    $('#startBtn').disabled = true;
+    show('seat');
+  }
+
+  // ---------- cards ----------
+  function setButtons(state) { // idle | reading | done
+    const hasBest = !!S.best[cards[S.i].id], last = S.i === cards.length - 1;
+    $('#listenBtn').hidden = state === 'reading';
+    $('#readBtn').hidden = state !== 'idle';
+    $('#cancelBtn').hidden = state !== 'reading';
+    $('#againBtn').hidden = state !== 'done' || S.tries >= C.SCORING.maxTries;
+    $('#nextBtn').hidden = state === 'reading' || !hasBest;
+    $('#nextBtn').textContent = last ? 'Finish' : 'Next';
+    $('#grpBtn').disabled = $('#whoBtn').disabled = state === 'reading';
+  }
+
+  function openCard(i) {
+    S.i = i; S.tries = 0;
+    const c = cards[i], title = $('#cardTitle'), sent = $('#sentence');
+    $('#stepNo').textContent = `Step ${c.id}`;
+    title.textContent = ''; sent.textContent = '';
+    c.tokens.forEach((t, k) => {
+      const sp = document.createElement('span');
+      sp.className = 'w'; sp.textContent = t.text; sp.dataset.k = k;
+      (t.head ? title : sent).append(sp, ' ');
+    });
+    title.hidden = !c.title;
+    $('#dots').textContent = '';
+    cards.forEach((x, k) => {
+      const d = document.createElement('i');
+      d.className = k === i ? 'now' : S.best[x.id] ? 'done' : '';
+      $('#dots').append(d);
+    });
+    $('#stars').textContent = ''; $('#feedback').textContent = ''; status('');
+    setButtons('idle');
+    show('card');
+  }
+
+  function light(n) { spans().forEach((s, k) => s.classList.toggle('lit', k < n)); }
+  function paint(result) {
+    spans().forEach((s, k) => {
+      const t = result && result.tokens[k];
+      s.classList.remove('lit', 'good', 'ok', 'bad', 'miss');
+      if (!t) return;
+      s.classList.add(t.error === 'Omission' || t.score == null ? 'miss' : t.score >= 80 ? 'good' : t.score >= 60 ? 'ok' : 'bad');
+    });
+  }
+
+  async function read() {
+    if (S.reading) return;
+    const run = ++S.run, c = cards[S.i];
+    S.reading = true;
+    try { speechSynthesis.cancel(); } catch { /* no TTS */ }
+    paint(null); $('#stars').textContent = ''; $('#feedback').textContent = '';
+    setButtons('reading');
+    try {
+      for (const n of [3, 2, 1]) { status(String(n)); await sleep(fake ? 150 : 700); if (run !== S.run) return; }
+      status('Listening…', true);
+      S.ctrl = new AbortController();
+      const result = await engine.assess(c, { onPartial: text => run === S.run && light(C.progress(c.tokens, text)), signal: S.ctrl.signal });
+      if (run !== S.run) return;
+      S.tries++;
+      const entry = { result, rate: C.rate(result) };
+      S.best[c.id] = C.better(S.best[c.id], entry);
+      paint(result); status('');
+      $('#stars').textContent = starText(entry.rate.stars);
+      $('#feedback').textContent = entry.rate.feedback;
+      setButtons('done');
+    } catch (e) {
+      if (run !== S.run) return;
+      const code = (e && e.code) || 'canceled';
+      if (!e || !e.code) console.error(e);
+      status(''); light(0);
+      setButtons(S.best[c.id] ? 'done' : 'idle');
+      if (code !== 'cancel') message(MSG[code] || MSG.canceled);
+    } finally {
+      if (run === S.run) { S.reading = false; S.ctrl = null; }
+    }
+  }
+
+  // Stops a countdown or a recognition in progress; does not count as a try.
+  function cancel() {
+    if (!S.reading) return;
+    S.run++;
+    if (S.ctrl) S.ctrl.abort();
+    S.reading = false; S.ctrl = null;
+    status(''); light(0);
+    if (S.i >= 0) setButtons(S.best[cards[S.i].id] ? 'done' : 'idle');
+  }
+
+  // Upload this card's best reading once, when the student leaves it.
+  function leaveCard() {
+    if (S.i < 0) return;
+    cancel();
+    const id = cards[S.i].id, b = S.best[id];
+    if (b) Scores.send(C.toPayload(S.grp, S.seat, id, b, S.tries));
+    S.i = -1;
+  }
+
+  function summary() {
+    const s = C.summarize(S.best);
+    $('#sumTitle').textContent = `Great job, Seat ${S.seat}!`;
+    $('#sumStars').textContent = `★ ${s.stars} / ${s.maxStars}`;
+    $('#sumBadge').textContent = s.allRead ? 'All 7 steps read!' : `${s.readCount} / 7 steps read`;
+    $('#sumWeak').textContent = '';
+    s.weak.forEach(w => {
+      const b = document.createElement('button');
+      b.textContent = w;
+      b.addEventListener('click', () => speak(w));
+      $('#sumWeak').append(b);
+    });
+    $('#sumWeakHead').hidden = !s.weak.length;
+    show('summary');
+    celebrate();
+  }
+
+  function celebrate() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colors = ['#E0473F', '#5B30E6', '#F7E35C', '#6CB98A', '#7FB3E0', '#F2B184'];
+    for (let k = 0; k < 40; k++) {
+      const p = document.createElement('i');
+      p.className = 'confetti';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.background = colors[k % colors.length];
+      p.style.animationDelay = Math.random() * 0.6 + 's';
+      p.addEventListener('animationend', () => p.remove());
+      document.body.append(p);
+    }
+  }
+
+  // ---------- wiring ----------
+  const on = (sel, fn) => $(sel).addEventListener('click', () => { try { fn(); } catch (e) { console.error(e); } });
+  buildPads();
+  on('#startBtn', async () => {
+    if (!S.seat) return;
+    try { await micCheck(); } catch (e) { message(MSG[e.code] || MSG.canceled); return; }
+    S.best = {};
+    openCard(0);
+  });
+  on('#listenBtn', () => speak(cards[S.i].referenceText));
+  on('#readBtn', read);
+  on('#cancelBtn', cancel);
+  on('#againBtn', read);
+  on('#nextBtn', () => { const i = S.i; leaveCard(); if (i + 1 < cards.length) openCard(i + 1); else summary(); });
+  on('#nextKid', toSeat);
+  on('#whoBtn', () => { leaveCard(); toSeat(); });
+  on('#grpBtn', () => { leaveCard(); show('group'); });
+  on('#msgBtn', () => { $('#msg').hidden = true; });
+
+  if (S.grp) toSeat(); else show('group');
+  Scores.flush();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,471 @@
+<meta charset="utf-8">
+<title>Read &amp; Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/* Read & Check: student page for the group iPad. Same look as the deck (peach grid paper, Fredoka). */
+:root{
+  --paper:#FCE7D6; --grid:#FFF6EE; --ink:#3B2A28; --brown:#6A3C3A; --rose:#EBA3A3; --apricot:#F2B184;
+  --card:#FFFFFF; --lemon:#F7E35C; --verb:#E0473F; --noun:#5B30E6; --mint:#6CB98A; --sky:#7FB3E0;
+  --good:#3E9A63; --ok:#D99A16; --bad:#E0473F; --miss:#A89A96;
+  --display:'Fredoka',system-ui,sans-serif; --body:'Nunito',system-ui,sans-serif;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:var(--body);color:var(--ink);background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 2px,transparent 2px),linear-gradient(90deg,var(--grid) 2px,transparent 2px);
+  background-size:36px 36px;-webkit-text-size-adjust:100%}
+button{font:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#app{max-width:1000px;margin:0 auto;padding:16px 20px 32px;min-height:100vh;display:flex;flex-direction:column}
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin-bottom:12px}
+.brand{font-family:var(--display);font-weight:700;font-size:28px;color:var(--brown);grid-column:2}
+#whoBtn{grid-column:1;justify-self:start} #grpBtn{grid-column:3;justify-self:end}
+.chip{background:#fff;border:3px solid #E7B48C;border-radius:999px;padding:6px 16px;font-weight:800;color:var(--brown);cursor:pointer}
+.chip:disabled{opacity:.4}
+h1{font-family:var(--display);font-weight:700;color:var(--brown);text-align:center;font-size:38px;margin:6px 0 12px}
+section{flex:1;display:flex;flex-direction:column;align-items:center}
+.pad{display:grid;gap:14px;width:100%;max-width:720px}
+#groupPad{grid-template-columns:repeat(3,1fr)}
+#groupPad button{font-family:var(--display);font-size:44px;height:120px;border-radius:28px;background:#fff;border:4px solid var(--apricot);color:var(--brown);cursor:pointer}
+#seatPad{grid-template-columns:repeat(8,1fr);gap:10px}
+#seatPad button{font-family:var(--display);font-size:26px;height:56px;border-radius:16px;background:#fff;border:3px solid #E7B48C;color:var(--brown);cursor:pointer}
+#seatPad button.on{background:var(--lemon);border-color:var(--brown)}
+.seat-show{font-family:var(--display);font-size:48px;line-height:1;color:var(--noun);min-height:52px;margin-bottom:12px}
+.girl{width:84px;height:auto}
+.btn{font-family:var(--body);font-weight:800;font-size:24px;color:#4E302C;background:#FFF3E6;border:3px solid #E7B48C;border-radius:999px;padding:14px 30px;cursor:pointer}
+.btn.go{background:var(--mint);border-color:#3E8A5E;color:#fff}
+.btn.big{font-size:30px;padding:16px 46px;margin-top:16px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.btn:focus-visible,.chip:focus-visible,.pad button:focus-visible{outline:4px solid var(--noun);outline-offset:3px}
+.dots{display:flex;gap:10px;margin:4px 0 14px}
+.dots i{width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #E7B48C}
+.dots i.done{background:var(--mint);border-color:#3E8A5E}
+.dots i.now{background:var(--lemon);border-color:var(--brown);transform:scale(1.25)}
+.card{background:var(--card);border-radius:28px;padding:26px 32px;width:100%;box-shadow:0 6px 0 rgba(106,60,58,.15)}
+.step-no{font-family:var(--display);font-weight:700;font-size:26px;color:var(--apricot);-webkit-text-stroke:1px var(--brown)}
+.hl{display:inline-block;background:var(--lemon);border-radius:10px;padding:2px 12px;font-family:var(--display);font-weight:600;font-size:34px;margin:8px 0 6px;color:var(--brown)}
+.sentence{font-size:40px;line-height:1.5;font-weight:800;margin:6px 0 0}
+.w{border-radius:8px;padding:0 3px;transition:background-color .2s,color .2s}
+.w.lit{background:#FFF3B0}
+.w.good{color:var(--good)} .w.ok{color:var(--ok)} .w.bad{color:var(--bad);text-decoration:underline wavy}
+.w.miss{color:var(--miss);text-decoration:line-through}
+.status{font-family:var(--display);font-size:34px;color:var(--noun);min-height:48px;margin-top:14px}
+.status.live::before{content:'';display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--verb);margin-right:12px;vertical-align:middle;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.4);opacity:.6}}
+.stars{font-size:54px;color:#F2B01E;letter-spacing:6px;min-height:64px}
+.feedback{font-size:28px;font-weight:800;color:var(--brown);margin:0 0 6px;min-height:38px;text-align:center}
+.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.stars.big{font-size:72px}
+.badge{font-family:var(--display);font-size:32px;background:var(--lemon);border-radius:999px;padding:8px 28px;color:var(--brown);margin:8px 0 16px}
+.weak{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.weak button{font-size:28px;font-weight:800;background:#fff;border:3px solid var(--rose);border-radius:16px;padding:10px 20px;color:var(--verb);cursor:pointer}
+.weak button::before{content:'▶ ';font-size:20px;color:var(--brown)}
+.msg{position:fixed;inset:0;background:rgba(59,42,40,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10}
+.msg>div{background:#fff;border-radius:24px;padding:28px 32px;max-width:560px;text-align:center}
+.msg p{font-size:24px;font-weight:800;white-space:pre-line;margin:0 0 18px}
+.confetti{position:fixed;top:-20px;width:12px;height:18px;border-radius:3px;z-index:5;pointer-events:none;animation:fall 2.6s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:760px){
+  #seatPad{grid-template-columns:repeat(5,1fr)} .sentence{font-size:30px} .hl{font-size:26px} h1{font-size:32px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
+</style>
+<main id="app">
+  <header class="top">
+    <button class="chip" id="whoBtn" hidden></button>
+    <span class="brand">Read &amp; Check</span>
+    <button class="chip" id="grpBtn" hidden></button>
+  </header>
+
+  <section data-screen="group" hidden>
+    <h1>Which group are you?</h1>
+    <div class="pad" id="groupPad"></div>
+  </section>
+
+  <section data-screen="seat" hidden>
+    <img class="girl" data-img="girl_pin.webp" alt="">
+    <h1>What is your seat number?</h1>
+    <div class="seat-show" id="seatShow">–</div>
+    <div class="pad" id="seatPad"></div>
+    <button class="btn go big" id="startBtn" disabled>Start</button>
+  </section>
+
+  <section data-screen="card" hidden>
+    <div class="dots" id="dots"></div>
+    <div class="card">
+      <div class="step-no" id="stepNo"></div>
+      <h2 class="hl" id="cardTitle"></h2>
+      <p class="sentence" id="sentence"></p>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="stars" id="stars"></div>
+    <p class="feedback" id="feedback"></p>
+    <div class="actions">
+      <button class="btn" id="listenBtn">Listen</button>
+      <button class="btn go big" id="readBtn">Start reading</button>
+      <button class="btn" id="cancelBtn" hidden>Cancel</button>
+      <button class="btn" id="againBtn" hidden>Try again</button>
+      <button class="btn go" id="nextBtn" hidden>Next</button>
+    </div>
+  </section>
+
+  <section data-screen="summary" hidden>
+    <h1 id="sumTitle"></h1>
+    <div class="stars big" id="sumStars"></div>
+    <div class="badge" id="sumBadge"></div>
+    <h2 id="sumWeakHead">Words to practice</h2>
+    <div class="weak" id="sumWeak"></div>
+    <button class="btn go big" id="nextKid">Next classmate</button>
+  </section>
+
+  <div class="msg" id="msg" hidden><div><p id="msgText"></p><button class="btn go" id="msgBtn">OK</button></div></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.52.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js" defer></script>
+<script>
+/*{{READCORE}}*/
+(() => {
+  'use strict';
+  const C = window.ReadCore;
+  const IMG = {{IMGMAP}};
+  const $ = s => document.querySelector(s);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const fail = code => Object.assign(new Error(code), { code });
+  document.querySelectorAll('img[data-img]').forEach(i => { const u = IMG[i.dataset.img]; if (u) i.src = u; });
+
+  // localStorage can throw (private mode, blocked storage): never let it break the page.
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+  };
+
+  const MSG = {
+    mic: 'Please ask your teacher to allow the microphone.\n請老師幫忙開啟麥克風：設定 > Safari > 麥克風 > 允許，然後重新整理。',
+    token: 'Please ask your teacher.\n請老師幫忙：無法連到評分服務，請檢查網路。',
+    sdk: 'Please check the internet and reload the page.\n請檢查網路後重新整理。',
+    nomatch: "I couldn't hear you. Hold the iPad closer and try again.",
+    canceled: "Something went wrong. Let's try again.",
+  busy: 'Too many groups are reading right now. Wait a moment and try again.',
+  };
+
+  // ---------- Azure token (10 min valid; cached 9 min, one retry) ----------
+  const Token = {
+    v: null,
+    async get() {
+      if (this.v && Date.now() - this.v.at < 9 * 60e3) return this.v;
+      for (let i = 0; i < 2; i++) {
+        try {
+          const r = await fetch('/api/token', { cache: 'no-store' });
+          if (r.ok) { const d = await r.json(); this.v = { token: d.token, region: d.region, at: Date.now() }; return this.v; }
+          console.error('token http', r.status);
+        } catch (e) { console.error('token', e); }
+      }
+      throw fail('token');
+    },
+    clear() { this.v = null; },
+  };
+
+  // ---------- engines: assess(card, { onPartial, signal }) -> Promise<Result> ----------
+  const classify = msg => fail(/permission|notallowed|denied/i.test(msg) ? 'mic' : 'canceled');
+
+  const AzureEngine = {
+    async assess(card, { onPartial, signal }) {
+      const sdk = window.SpeechSDK;
+      if (!sdk) throw fail('sdk');
+      const { token, region } = await Token.get();
+      if (signal.aborted) throw fail('cancel');
+      const cfg = sdk.SpeechConfig.fromAuthorizationToken(token, region);
+      cfg.speechRecognitionLanguage = 'en-US';
+      cfg.setProperty(sdk.PropertyId.Speech_SegmentationSilenceTimeoutMs, String(C.SCORING.silenceMs));
+      const rec = new sdk.SpeechRecognizer(cfg, sdk.AudioConfig.fromDefaultMicrophoneInput());
+      const pa = new sdk.PronunciationAssessmentConfig(card.referenceText,
+        sdk.PronunciationAssessmentGradingSystem.HundredMark, sdk.PronunciationAssessmentGranularity.Word, true);
+      pa.enableProsodyAssessment = true;
+      pa.applyTo(rec);
+      rec.recognizing = (_, e) => { try { onPartial(e.result.text); } catch (err) { console.error(err); } };
+      try {
+        const result = await new Promise((resolve, reject) => {
+          signal.addEventListener('abort', () => reject(fail('cancel')), { once: true });
+          rec.recognizeOnceAsync(resolve, err => reject(classify(String(err))));
+        });
+        if (result.reason === sdk.ResultReason.RecognizedSpeech) {
+          return C.fromAzure(JSON.parse(result.properties.getProperty(sdk.PropertyId.SpeechServiceResponse_JsonResult)), card.tokens);
+        }
+        if (result.reason === sdk.ResultReason.NoMatch) throw fail('nomatch');
+        const d = sdk.CancellationDetails.fromResult(result);
+        console.error('recognition canceled', d.reason, d.errorCode, d.errorDetails);
+        if (d.errorCode === sdk.CancellationErrorCode.AuthenticationFailure) Token.clear();
+        if (d.errorCode === sdk.CancellationErrorCode.TooManyRequests) throw fail('busy'); // over the Azure concurrency limit
+        throw classify(String(d.errorDetails || ''));
+      } finally {
+        try { rec.close(); } catch (e) { console.error('close', e); } // frees the microphone
+      }
+    },
+  };
+
+  // ?engine=fake: no microphone and fixed results, for tests and demos. The third word scores low.
+  const FakeEngine = {
+    assess(card, { onPartial, signal }) {
+      return new Promise((resolve, reject) => {
+        const words = card.tokens.map(t => t.text);
+        let i = 0;
+        const tick = setInterval(() => {
+          onPartial(words.slice(0, ++i).join(' '));
+          if (i < words.length) return;
+          clearInterval(tick);
+          resolve({
+            tokens: card.tokens.map((t, k) => ({ text: t.text, head: t.head, score: k === 2 ? 55 : 92, error: k === 2 ? 'Mispronunciation' : 'None' })),
+            scores: { accuracy: 88, fluency: 90, completeness: 100, prosody: 85, overall: 87 },
+          });
+        }, 40);
+        signal.addEventListener('abort', () => { clearInterval(tick); reject(fail('cancel')); }, { once: true });
+      });
+    },
+  };
+
+  const fake = new URLSearchParams(location.search).get('engine') === 'fake';
+  const engine = fake ? FakeEngine : AzureEngine;
+
+  // Ask for the microphone once per page load, so a denial gets a clear message.
+  let micOk = fake;
+  async function micCheck() {
+    if (micOk) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw fail('mic');
+    try { (await navigator.mediaDevices.getUserMedia({ audio: true })).getTracks().forEach(t => t.stop()); }
+    catch (e) { console.error('mic', e); throw fail('mic'); }
+    micOk = true;
+  }
+
+  // ---------- score upload queue (survives offline and reloads) ----------
+  const Scores = {
+    KEY: 'readcipe-pending', busy: false,
+    send(payload) {
+      const q = store.get(this.KEY, []);
+      q.push(payload);
+      store.set(this.KEY, q.slice(-200));
+      this.flush();
+    },
+    async flush() {
+      if (this.busy) return;
+      this.busy = true;
+      try {
+        for (let q = store.get(this.KEY, []); q.length; q = store.get(this.KEY, [])) {
+          let r;
+          try { r = await fetch('/api/score', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(q[0]) }); }
+          catch (e) { console.warn('upload later', e); break; }
+          if (r.status >= 500 || r.status === 429) break; // try again later
+          if (!r.ok) console.error('score rejected', r.status, q[0]); // 4xx never succeeds: drop it
+          const now = store.get(this.KEY, []);
+          now.shift();
+          store.set(this.KEY, now);
+        }
+      } finally { this.busy = false; }
+    },
+  };
+  window.addEventListener('online', () => Scores.flush());
+  setInterval(() => Scores.flush(), 30000);
+
+  // ---------- state ----------
+  const cards = C.CARDS.map(C.prepare);
+  const grpOk = n => Number.isInteger(n) && n >= 1 && n <= 6;
+  const S = { grp: grpOk(store.get('readcipe-group', 0)) ? store.get('readcipe-group', 0) : 0, seat: 0, i: -1, tries: 0, best: {}, run: 0, ctrl: null, reading: false };
+
+  function show(name) {
+    document.querySelectorAll('[data-screen]').forEach(s => { s.hidden = s.dataset.screen !== name; });
+    $('#grpBtn').hidden = !S.grp || name === 'group';
+    $('#grpBtn').textContent = `Group ${S.grp}`;
+    $('#whoBtn').hidden = !(name === 'card' || name === 'summary');
+    $('#whoBtn').textContent = `Seat ${S.seat} · Change student`;
+  }
+
+  function message(text) { $('#msgText').textContent = text; $('#msg').hidden = false; }
+  function status(text, live) { const el = $('#status'); el.textContent = text; el.classList.toggle('live', !!live); }
+  function speak(text) {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = 0.85;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) { console.error('tts', e); }
+  }
+  const starText = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+  const spans = () => document.querySelectorAll('[data-screen="card"] .w');
+
+  // ---------- pads ----------
+  function buildPads() {
+    for (let n = 1; n <= 6; n++) {
+      const b = document.createElement('button');
+      b.textContent = n;
+      b.addEventListener('click', () => { S.grp = n; store.set('readcipe-group', n); toSeat(); });
+      $('#groupPad').append(b);
+    }
+    for (let n = 1; n <= 40; n++) {
+      const b = document.createElement('button');
+      b.textContent = n;
+      b.addEventListener('click', () => {
+        S.seat = n;
+        $('#seatShow').textContent = n;
+        document.querySelectorAll('#seatPad button').forEach(x => x.classList.toggle('on', x === b));
+        $('#startBtn').disabled = false;
+      });
+      $('#seatPad').append(b);
+    }
+  }
+
+  function toSeat() {
+    S.seat = 0;
+    $('#seatShow').textContent = '–';
+    document.querySelectorAll('#seatPad button.on').forEach(x => x.classList.remove('on'));
+    $('#startBtn').disabled = true;
+    show('seat');
+  }
+
+  // ---------- cards ----------
+  function setButtons(state) { // idle | reading | done
+    const hasBest = !!S.best[cards[S.i].id], last = S.i === cards.length - 1;
+    $('#listenBtn').hidden = state === 'reading';
+    $('#readBtn').hidden = state !== 'idle';
+    $('#cancelBtn').hidden = state !== 'reading';
+    $('#againBtn').hidden = state !== 'done' || S.tries >= C.SCORING.maxTries;
+    $('#nextBtn').hidden = state === 'reading' || !hasBest;
+    $('#nextBtn').textContent = last ? 'Finish' : 'Next';
+    $('#grpBtn').disabled = $('#whoBtn').disabled = state === 'reading';
+  }
+
+  function openCard(i) {
+    S.i = i; S.tries = 0;
+    const c = cards[i], title = $('#cardTitle'), sent = $('#sentence');
+    $('#stepNo').textContent = `Step ${c.id}`;
+    title.textContent = ''; sent.textContent = '';
+    c.tokens.forEach((t, k) => {
+      const sp = document.createElement('span');
+      sp.className = 'w'; sp.textContent = t.text; sp.dataset.k = k;
+      (t.head ? title : sent).append(sp, ' ');
+    });
+    title.hidden = !c.title;
+    $('#dots').textContent = '';
+    cards.forEach((x, k) => {
+      const d = document.createElement('i');
+      d.className = k === i ? 'now' : S.best[x.id] ? 'done' : '';
+      $('#dots').append(d);
+    });
+    $('#stars').textContent = ''; $('#feedback').textContent = ''; status('');
+    setButtons('idle');
+    show('card');
+  }
+
+  function light(n) { spans().forEach((s, k) => s.classList.toggle('lit', k < n)); }
+  function paint(result) {
+    spans().forEach((s, k) => {
+      const t = result && result.tokens[k];
+      s.classList.remove('lit', 'good', 'ok', 'bad', 'miss');
+      if (!t) return;
+      s.classList.add(t.error === 'Omission' || t.score == null ? 'miss' : t.score >= 80 ? 'good' : t.score >= 60 ? 'ok' : 'bad');
+    });
+  }
+
+  async function read() {
+    if (S.reading) return;
+    const run = ++S.run, c = cards[S.i];
+    S.reading = true;
+    try { speechSynthesis.cancel(); } catch { /* no TTS */ }
+    paint(null); $('#stars').textContent = ''; $('#feedback').textContent = '';
+    setButtons('reading');
+    try {
+      for (const n of [3, 2, 1]) { status(String(n)); await sleep(fake ? 150 : 700); if (run !== S.run) return; }
+      status('Listening…', true);
+      S.ctrl = new AbortController();
+      const result = await engine.assess(c, { onPartial: text => run === S.run && light(C.progress(c.tokens, text)), signal: S.ctrl.signal });
+      if (run !== S.run) return;
+      S.tries++;
+      const entry = { result, rate: C.rate(result) };
+      S.best[c.id] = C.better(S.best[c.id], entry);
+      paint(result); status('');
+      $('#stars').textContent = starText(entry.rate.stars);
+      $('#feedback').textContent = entry.rate.feedback;
+      setButtons('done');
+    } catch (e) {
+      if (run !== S.run) return;
+      const code = (e && e.code) || 'canceled';
+      if (!e || !e.code) console.error(e);
+      status(''); light(0);
+      setButtons(S.best[c.id] ? 'done' : 'idle');
+      if (code !== 'cancel') message(MSG[code] || MSG.canceled);
+    } finally {
+      if (run === S.run) { S.reading = false; S.ctrl = null; }
+    }
+  }
+
+  // Stops a countdown or a recognition in progress; does not count as a try.
+  function cancel() {
+    if (!S.reading) return;
+    S.run++;
+    if (S.ctrl) S.ctrl.abort();
+    S.reading = false; S.ctrl = null;
+    status(''); light(0);
+    if (S.i >= 0) setButtons(S.best[cards[S.i].id] ? 'done' : 'idle');
+  }
+
+  // Upload this card's best reading once, when the student leaves it.
+  function leaveCard() {
+    if (S.i < 0) return;
+    cancel();
+    const id = cards[S.i].id, b = S.best[id];
+    if (b) Scores.send(C.toPayload(S.grp, S.seat, id, b, S.tries));
+    S.i = -1;
+  }
+
+  function summary() {
+    const s = C.summarize(S.best);
+    $('#sumTitle').textContent = `Great job, Seat ${S.seat}!`;
+    $('#sumStars').textContent = `★ ${s.stars} / ${s.maxStars}`;
+    $('#sumBadge').textContent = s.allRead ? 'All 7 steps read!' : `${s.readCount} / 7 steps read`;
+    $('#sumWeak').textContent = '';
+    s.weak.forEach(w => {
+      const b = document.createElement('button');
+      b.textContent = w;
+      b.addEventListener('click', () => speak(w));
+      $('#sumWeak').append(b);
+    });
+    $('#sumWeakHead').hidden = !s.weak.length;
+    show('summary');
+    celebrate();
+  }
+
+  function celebrate() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colors = ['#E0473F', '#5B30E6', '#F7E35C', '#6CB98A', '#7FB3E0', '#F2B184'];
+    for (let k = 0; k < 40; k++) {
+      const p = document.createElement('i');
+      p.className = 'confetti';
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.background = colors[k % colors.length];
+      p.style.animationDelay = Math.random() * 0.6 + 's';
+      p.addEventListener('animationend', () => p.remove());
+      document.body.append(p);
+    }
+  }
+
+  // ---------- wiring ----------
+  const on = (sel, fn) => $(sel).addEventListener('click', () => { try { fn(); } catch (e) { console.error(e); } });
+  buildPads();
+  on('#startBtn', async () => {
+    if (!S.seat) return;
+    try { await micCheck(); } catch (e) { message(MSG[e.code] || MSG.canceled); return; }
+    S.best = {};
+    openCard(0);
+  });
+  on('#listenBtn', () => speak(cards[S.i].referenceText));
+  on('#readBtn', read);
+  on('#cancelBtn', cancel);
+  on('#againBtn', read);
+  on('#nextBtn', () => { const i = S.i; leaveCard(); if (i + 1 < cards.length) openCard(i + 1); else summary(); });
+  on('#nextKid', toSeat);
+  on('#whoBtn', () => { leaveCard(); toSeat(); });
+  on('#grpBtn', () => { leaveCard(); show('group'); });
+  on('#msgBtn', () => { $('#msg').hidden = true; });
+
+  if (S.grp) toSeat(); else show('group');
+  Scores.flush();
+})();
+</script>
