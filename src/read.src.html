@@ -41,7 +41,7 @@ section{flex:1;display:flex;flex-direction:column;align-items:center}
 .btn:focus-visible,.chip:focus-visible,.pad button:focus-visible{outline:4px solid var(--noun);outline-offset:3px}
 .dots{display:flex;gap:10px;margin:0 0 10px}
 /* the deck's step slide, scaled into a 16:9 box; leaves room for the reading panel below */
-.slide-box{width:clamp(320px,calc((100vh - 380px) * 16 / 9),100%);width:clamp(320px,calc((100dvh - 380px) * 16 / 9),100%);aspect-ratio:16/9;
+.slide-box{width:clamp(320px,calc((100vh - 400px) * 16 / 9),100%);width:clamp(320px,calc((100dvh - 400px) * 16 / 9),100%);aspect-ratio:16/9;
   border-radius:18px;overflow:hidden;background:var(--paper);box-shadow:0 6px 0 rgba(106,60,58,.15);margin-bottom:12px;transition:opacity .2s}
 .slide-box iframe{width:100%;height:100%;border:0;display:block}
 body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds while the microphone listens */
@@ -64,6 +64,13 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
 .feedback{font-size:24px;font-weight:800;color:var(--brown);margin:0;text-align:center}
 .actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:4px}
 [data-screen="card"] .btn.big{margin-top:0}
+[data-screen="card"] .step-no{display:none} /* the slide above already shows the step */
+/* short screens (iPad landscape with the Safari toolbar): keep Start reading on screen */
+@media (max-height:820px){
+  #app{padding-top:10px;padding-bottom:12px} .top{margin-bottom:6px} .dots{margin-bottom:8px}
+  .sentence{font-size:26px} .hl{font-size:22px} .result{min-height:48px;margin-top:4px}
+  .stars{font-size:38px} [data-screen="card"] .btn{font-size:22px;padding:10px 24px} [data-screen="card"] .btn.big{font-size:26px;padding:12px 36px}
+}
 .stars.big{font-size:72px;min-height:80px}
 .badge{font-family:var(--display);font-size:32px;background:var(--lemon);border-radius:999px;padding:8px 28px;color:var(--brown);margin:8px 0 16px}
 .weak{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
