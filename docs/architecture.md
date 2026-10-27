@@ -92,7 +92,8 @@ Modules.myLab = {
 - 測試：`node worker/test.mjs`、`python tools/test_read.py`（Playwright，假引擎＋mock API）。
 
 ## 語音與嵌入模式（簡報）
-- `Voice`：瀏覽器 `speechSynthesis` 包裝，`speak(text, { onWord, onEnd })`，不支援時回傳 false，畫面照常運作。之後換成錄好的 AI 語音時只改這一層。
+- `Voice`：`speak(text, { onStart, onWord, onEnd })`，依序選引擎：(1) 本機 en-US 瀏覽器語音（iPad、Mac、裝了英文語音的 Windows，會回報每個字）；(2) 沒有本機英文語音時用 `AzureVoice`（Azure 神經語音 `en-US-JennyNeural`，透過 `/api/token`，用 `wordBoundary` 的音訊時間配合 `player.currentTime` 亮字）；(3) 其他瀏覽器語音（不回報字，`Reader` 依量到的語速估算）。Azure 任何失敗都會切回瀏覽器語音；claude.ai Artifact 版沒有 `/api` 所以一律用瀏覽器語音。之後換成錄好的 AI 語音時只改這一層。
+- 嵌入模式另外接受 `{ say: text }`：學生頁的 Listen 和要再練的字都透過投影片的 `Voice` 念，聲音和上課一致。
 - `Reader.words()`：念句子並依 `boundary` 事件逐字亮起；聲音沒有 boundary 事件時改用固定節奏。`Reader.items()` 念每張食材卡的名稱。
 - `Narrator`：N 鍵或 `#nbVoice` 念本頁講稿的 `<p>`（去掉 `.cue`），換頁時 `Deck.go` 會停止。
 - `EMBED`（`?embed=N`）：只顯示第 N 頁、隱藏控制列、停用鍵盤/滾輪/中鍵；接受同源 `postMessage({ type: 'deck', goto: N })` 換頁、`{ hush: true }` 停止聲音。學生頁的 `Frame` 物件就是用這個介面。

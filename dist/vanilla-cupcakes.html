@@ -1007,14 +1007,21 @@ function celebrate(n = 70) {
     a.onfinish = () => d.remove();
   }
 }
-/* ---------- voice: browser text-to-speech ----------
-   Stand-in narrator until the recorded AI voice exists. speak() returns false when the
-   browser has no speech, so callers keep working silently. */
+/* ---------- voice ----------
+   Voice.speak() picks one of three engines, in this order:
+   1. a local en-US browser voice (iPad, Mac, Windows with the English voice pack): it reports
+      every word, so the read-along light follows it exactly;
+   2. Azure neural voice (AzureVoice, through /api/token) when the device has no local English
+      voice, e.g. Chrome on a Chinese Windows. Azure also reports every word with its time;
+   3. any other browser voice (online voices report no words; Reader estimates the timing).
+   speak() returns false when nothing can speak, so callers keep working silently.
+   Replace this layer when the recorded AI voice is ready. */
 const Voice = {
-  ok: 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function',
+  browserOk: 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function',
+  get ok() { return this.browserOk || AzureVoice.ready; },
   rate: 0.9, voice: null, tok: 0,
   // Speaking speed in "units" (letters, plus a pause per sentence) per second at rate 1.
-  // Starts from a typical value and learns from every finished sentence, per browser.
+  // Only used for engine 3. Starts from a typical value and learns from every sentence.
   ups: 16, learned: false,
   load() {
     const v = parseFloat(safe(() => localStorage.getItem('cupcake-voice-ups')));
@@ -1027,19 +1034,25 @@ const Voice = {
     this.learned = true;
     safe(() => localStorage.setItem('cupcake-voice-ups', this.ups.toFixed(2)));
   },
+  voices() { return (this.browserOk && safe(() => speechSynthesis.getVoices())) || []; },
+  hasLocalEnglish() { return this.voices().some(v => /^en[-_]US/i.test(v.lang) && v.localService); },
   pick() {
     if (this.voice) return this.voice;
-    const vs = safe(() => speechSynthesis.getVoices()) || [];
-    const us = vs.filter(v => /^en[-_]US/i.test(v.lang));
-    this.voice = us.find(v => /samantha|aria|jenny|google us english|zira/i.test(v.name)) || us[0] || null;
+    const us = this.voices().filter(v => /^en[-_]US/i.test(v.lang)), nice = /samantha|aria|jenny|zira|google us english/i;
+    this.voice = us.find(v => v.localService && nice.test(v.name)) || us.find(v => v.localService) || us.find(v => nice.test(v.name)) || us[0] || null;
     return this.voice;
   },
-  stop() { this.tok++; if (this.ok) safe(() => speechSynthesis.cancel()); },
+  stop() { this.tok++; if (this.browserOk) safe(() => speechSynthesis.cancel()); AzureVoice.stop(); },
   // speak(text, { onStart(), onWord(charIndex), onEnd() }); only the latest call gets callbacks
   speak(text, opts = {}) {
-    if (!this.ok || !text) return false;
+    if (!text) return false;
     this.stop();
-    const tok = this.tok, u = new SpeechSynthesisUtterance(text), v = this.pick();
+    if (AzureVoice.ready && !this.hasLocalEnglish()) return AzureVoice.speak(text, this.tok, opts);
+    return this.browserSpeak(text, this.tok, opts);
+  },
+  browserSpeak(text, tok, opts) {
+    if (!this.browserOk) return false;
+    const u = new SpeechSynthesisUtterance(text), v = this.pick();
     u.lang = 'en-US'; u.rate = opts.rate || this.rate; if (v) u.voice = v;
     u.onstart = () => { if (tok === this.tok && opts.onStart) safe(() => opts.onStart()); };
     u.onboundary = e => { if (tok === this.tok && e.name !== 'sentence' && opts.onWord) safe(() => opts.onWord(e.charIndex)); };
@@ -1048,8 +1061,107 @@ const Voice = {
     return true;
   }
 };
+
+/* Azure neural voice. Ready only after the Speech SDK has loaded and /api/token answered,
+   so the claude.ai copy of the deck (no /api) and offline use simply keep the browser voice.
+   Any failure switches back to the browser voice for the rest of the visit. */
+const AzureVoice = {
+  VOICE: 'en-US-JennyNeural', RATE: '-10%',
+  SDK: 'https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.52.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js',
+  ready: false, failed: false, sdkP: null, auth: null, cur: null,
+  async prepare() {
+    if (this.ready || this.failed || !/^https?:$/.test(location.protocol)) return;
+    try { await this.token(); await this.sdk(); this.ready = true; }
+    catch (e) { this.failed = true; console.info('[voice] Azure voice not available, using the browser voice:', e && e.message); }
+  },
+  sdk() {
+    if (window.SpeechSDK) return Promise.resolve();
+    return this.sdkP || (this.sdkP = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = this.SDK; s.async = true;
+      s.onload = () => (window.SpeechSDK ? resolve() : reject(new Error('sdk missing')));
+      s.onerror = () => reject(new Error('sdk load failed'));
+      document.head.appendChild(s);
+    }));
+  },
+  async token() { // 10-minute token, reused for 9 minutes
+    if (this.auth && Date.now() - this.auth.at < 9 * 60e3) return this.auth;
+    const r = await fetch('/api/token', { cache: 'no-store' });
+    const d = r.ok ? await r.json() : null;
+    if (!d || !d.token) throw new Error('token ' + r.status);
+    return (this.auth = { token: d.token, region: d.region, at: Date.now() });
+  },
+  // SSML with the text escaped; at[i] = position in the plain text of SSML character i
+  ssml(text) {
+    const head = `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><voice name="${this.VOICE}"><prosody rate="${this.RATE}">`;
+    const at = new Array(head.length).fill(-1);
+    let body = '';
+    [...text].forEach((ch, i) => {
+      const e = ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch;
+      body += e; for (let k = 0; k < e.length; k++) at.push(i);
+    });
+    return { doc: head + body + '</prosody></voice></speak>', at };
+  },
+  stop() {
+    const c = this.cur; this.cur = null;
+    if (!c) return;
+    clearInterval(c.timer); clearTimeout(c.watch);
+    safe(() => c.player.pause()); safe(() => c.player.close());
+    if (c.synth) safe(() => c.synth.close()); // null once synthesis has finished and closed it
+  },
+  speak(text, tok, opts) {
+    const sdk = window.SpeechSDK, live = () => tok === Voice.tok;
+    const fallback = why => {
+      console.error('[voice] Azure voice failed, switching to the browser voice:', why);
+      this.ready = false; this.failed = true; this.stop();
+      if (live() && !Voice.browserSpeak(text, tok, opts) && opts.onEnd) safe(() => opts.onEnd());
+    };
+    (async () => {
+      try {
+        const { token, region } = await this.token();
+        if (!live()) return;
+        const cfg = sdk.SpeechConfig.fromAuthorizationToken(token, region);
+        cfg.speechSynthesisVoiceName = this.VOICE;
+        const player = new sdk.SpeakerAudioDestination();
+        const synth = new sdk.SpeechSynthesizer(cfg, sdk.AudioConfig.fromSpeakerOutput(player));
+        const cur = this.cur = { player, synth, timer: 0, watch: 0 }, marks = [], { doc, at } = this.ssml(text);
+        let next = 0, t0 = 0;
+        // word times arrive ahead of the audio; they are released as playback reaches them
+        synth.wordBoundary = (_, e) => {
+          const off = e.textOffset, ci = off >= 0 && off < at.length && at[off] >= 0 ? at[off] : off < text.length ? off : -1;
+          if (ci >= 0) marks.push({ ms: e.audioOffset / 1e4, ci });
+        };
+        player.onAudioStart = () => {
+          clearTimeout(cur.watch);
+          if (!live()) return;
+          t0 = performance.now();
+          if (opts.onStart) safe(() => opts.onStart());
+          cur.timer = setInterval(() => {
+            if (!live()) { clearInterval(cur.timer); return; }
+            const ct = safe(() => player.currentTime), now = ct > 0 ? ct * 1000 : performance.now() - t0;
+            while (next < marks.length && marks[next].ms <= now) { const m = marks[next++]; if (opts.onWord) safe(() => opts.onWord(m.ci)); }
+          }, 40);
+        };
+        player.onAudioEnd = () => {
+          clearInterval(cur.timer);
+          if (this.cur === cur) this.stop();
+          if (live() && opts.onEnd) safe(() => opts.onEnd());
+        };
+        synth.speakSsmlAsync(doc, result => {
+          safe(() => synth.close()); cur.synth = null;
+          if (result.reason !== sdk.ResultReason.SynthesizingAudioCompleted) { fallback(result.errorDetails || result.reason); return; }
+          // audio blocked or stuck: do not leave the lesson waiting
+          cur.watch = setTimeout(() => { if (!t0 && this.cur === cur && live()) fallback('audio did not start'); }, 4000);
+        }, err => fallback(err));
+      } catch (e) { fallback(e && e.message || e); }
+    })();
+    return true;
+  }
+};
 Voice.load();
-if (Voice.ok) safe(() => speechSynthesis.addEventListener('voiceschanged', () => { Voice.voice = null; }));
+if (Voice.browserOk) safe(() => speechSynthesis.addEventListener('voiceschanged', () => { Voice.voice = null; }));
+// Chrome fills the voice list a moment after load; then decide whether Azure is needed.
+setTimeout(() => { if (!Voice.hasLocalEnglish()) AzureVoice.prepare(); }, 1200);
 
 /* read-along: wrap words in spans, then light them up one by one */
 function wrapWords(el) {
@@ -2474,6 +2586,7 @@ if (EMBED) {
   window.addEventListener('message', e => {
     if (e.origin !== location.origin || !e.data || e.data.type !== 'deck') return;
     if (e.data.hush) Reader.stop();
+    if (typeof e.data.say === 'string') { Reader.stop(); Voice.speak(e.data.say.slice(0, 500)); }
     const n = parseInt(e.data.goto, 10);
     if (n > 0) Deck.go(n - 1);
   });

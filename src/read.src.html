@@ -324,8 +324,10 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
 
   function message(text) { $('#msgText').textContent = text; $('#msg').hidden = false; }
   function status(text, live) { const el = $('#status'); el.textContent = text; el.classList.toggle('live', !!live); }
+  // Model reading uses the slide's voice (local English voice or Azure), like the class deck;
+  // before the slide has loaded, the browser voice of this page is used.
   function speak(text) {
-    Frame.hush();
+    if (Frame.ready) { Frame.post({ say: text }); return; }
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US'; u.rate = 0.85;

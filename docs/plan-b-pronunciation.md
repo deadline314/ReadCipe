@@ -179,6 +179,7 @@ CREATE TABLE IF NOT EXISTS scores (
 ## 成本（2026-10 查詢；正式使用前請到 Azure 計價頁再確認）
 - **要用 S0（付費層）**：免費層 F0 的即時辨識同時只能有 1 個連線，而且不能調高，6 台 iPad 同時唸會有 5 台失敗（https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-services-quotas-and-limits ）。F0 只適合一台裝置自己測。F0 換 S0 後配額可能要幾小時才生效，直接建 S0 最保險。
 - 用量：一個學生含重唸約 2–3 分鐘，一班 30 人約 1–1.5 小時。
+- 簡報語音：沒有本機英文語音的電腦（例如中文版 Windows 的 Chrome）會改用 Azure 神經語音念 Read together 和講稿，按字數計費，一堂課只有幾千字，費用可以忽略。
 - 付費（S0）：即時語音轉文字約 US$1.32 / 小時，發音評估另計；保守估計每小時 US$2–3，一班約台幣 60–150 元。
 - 參考：https://azure.microsoft.com/en-in/pricing/details/speech 、https://learn.microsoft.com/en-us/answers/questions/5608069/pricing-and-usage-of-pronunciation-assessment-feat
 

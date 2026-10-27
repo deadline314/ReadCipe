@@ -66,6 +66,8 @@ async def student(page, base, out, posted):
     await expect(slide.locator('#navbtns')).to_be_hidden()  # embed mode: no deck chrome
     for i, card in enumerate(CARDS):
         await expect(slide.locator('.slide.is-active')).to_have_id(SLIDES[i], timeout=15000)
+        if i == 0:
+            await page.click('#listenBtn')  # model reading goes through the slide's voice
         await page.click('#readBtn')
         await page.wait_for_selector('#nextBtn:not([hidden])', timeout=15000)
         if i == 0:
@@ -162,6 +164,8 @@ async def main(out):
         if url.endswith('/api/score'):
             posted.append(json.loads(route.request.post_data))
             await route.fulfill(json={'ok': True})
+        elif url.endswith('/api/token'):
+            await route.fulfill(json={'error': 'config'})
         elif '/api/scores' in url:
             await route.fulfill(json={'day': '2026-10-30', 'rows': ROWS})
         else:
