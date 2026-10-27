@@ -58,6 +58,7 @@ tr.detail td{text-align:left;background:#FFF8EF;font-weight:700}
 
   // Reading cards = the step slides of the deck (src/index.src.html, .instr text).
   // Keep in sync with the deck and with CARD_IDS in worker/index.mjs.
+  // title: the yellow heading, shown on the card but not read or scored (teacher's choice).
   // say: display word (without trailing punctuation) -> how it is spoken (Azure reference text).
   // slide: the deck slide shown above the card (1-based, same as the deck's #N address).
   const CARDS = [
@@ -65,7 +66,7 @@ tr.detail td{text-align:left;background:#FFF8EF;font-weight:700}
     { id: '2', slide: 9, title: 'Prepare the dry ingredients', text: 'Mix and sieve cake flour, baking powder, and salt.' },
     { id: '3', slide: 10, title: 'Whisk the eggs and sugar', text: 'Whisk eggs on high speed for 2 minutes. Add sugar and mix until creamy.', say: { '2': 'two' } },
     { id: '4-1', slide: 11, title: 'Add oil and flavor', text: 'Add the sunflower seed oil slowly from the side, and whisk for another 3 minutes.', say: { '3': 'three' } },
-    { id: '4-2', slide: 12, title: '', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' }, // same title as 4-1, so not read twice
+    { id: '4-2', slide: 12, title: 'Add oil and flavor', text: 'Add the vanilla extract and the honey milk. Mix with a spatula.' },
     { id: '5', slide: 13, title: 'Mix with flour', text: 'Add flour in 3–4 times. Mix gently.', say: { '3–4': 'three to four' } },
     { id: '6', slide: 14, title: 'Fill the cups and bake', text: 'Spoon the batter into cupcake cases. Bake at 180°C for 16 minutes.', say: { '180°C': 'one hundred eighty degrees', '16': 'sixteen' } },
   ];
@@ -101,14 +102,9 @@ tr.detail td{text-align:left;background:#FFF8EF;font-weight:700}
     const say = card.say || {};
     const speak = raw => { const key = raw.replace(TRAIL, ''); return say[key] != null ? say[key] + raw.slice(key.length) : raw; };
     const split = s => String(s || '').split(/\s+/).filter(Boolean);
-    const tokens = [];
-    const add = (part, head) => split(part).forEach(raw => {
-      tokens.push({ text: raw, head, words: speak(raw).split(/\s+/).map(norm).filter(Boolean) });
-    });
-    add(card.title, true);
-    add(card.text, false);
-    const spoken = s => split(s).map(speak).join(' ');
-    const referenceText = (card.title ? spoken(card.title) + '. ' : '') + spoken(card.text);
+    // only the sentence is read; the title is a label
+    const tokens = split(card.text).map(raw => ({ text: raw, words: speak(raw).split(/\s+/).map(norm).filter(Boolean) }));
+    const referenceText = split(card.text).map(speak).join(' ');
     return { id: card.id, slide: card.slide, title: card.title, tokens, referenceText };
   }
 
@@ -140,7 +136,7 @@ tr.detail td{text-align:left;background:#FFF8EF;font-weight:700}
         if (typeof a.AccuracyScore === 'number') score = score == null ? a.AccuracyScore : Math.min(score, a.AccuracyScore);
       });
       if (error === 'Omission') score = null;
-      return { text: t.text, head: t.head, score: score == null ? null : Math.round(score), error };
+      return { text: t.text, score: score == null ? null : Math.round(score), error };
     });
     const r = v => (typeof v === 'number' ? Math.round(v) : null);
     return {

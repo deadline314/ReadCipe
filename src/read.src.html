@@ -236,7 +236,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
           clearInterval(tick);
           resolve({
             heard: words.join(' '),
-            tokens: card.tokens.map((t, k) => ({ text: t.text, head: t.head, score: k === 2 ? 55 : 92, error: k === 2 ? 'Mispronunciation' : 'None' })),
+            tokens: card.tokens.map((t, k) => ({ text: t.text, score: k === 2 ? 55 : 92, error: k === 2 ? 'Mispronunciation' : 'None' })),
             scores: { accuracy: 88, fluency: 90, completeness: 100, prosody: 85, overall: 87 },
           });
         }, 40);
@@ -384,13 +384,14 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
     const c = cards[i], title = $('#cardTitle'), sent = $('#sentence');
     $('#stepNo').textContent = `Step ${c.id}`;
     Frame.show(c.slide);
-    title.textContent = ''; sent.textContent = '';
+    // Only the sentence is read. The title stays on the slide above and is not shown here:
+    // children tend to read it too, and extra words lower Azure's fluency score.
+    title.textContent = c.title; title.hidden = true; sent.textContent = '';
     c.tokens.forEach((t, k) => {
       const sp = document.createElement('span');
       sp.className = 'w'; sp.textContent = t.text; sp.dataset.k = k;
-      (t.head ? title : sent).append(sp, ' ');
+      sent.append(sp, ' ');
     });
-    title.hidden = !c.title;
     $('#dots').textContent = '';
     cards.forEach((x, k) => {
       const d = document.createElement('i');

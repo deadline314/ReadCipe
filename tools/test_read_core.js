@@ -10,23 +10,25 @@ assert.deepEqual(C.CARD_IDS, ['1', '2', '3', '4-1', '4-2', '5', '6']);
 assert.deepEqual(C.CARDS.map(c => c.slide), [8, 9, 10, 11, 12, 13, 14]); // deck slides s-step1 .. s-step6
 assert.equal(card('4-2').slide, 12);
 const c6 = card('6');
-assert.equal(c6.referenceText, 'Fill the cups and bake. Spoon the batter into cupcake cases. Bake at one hundred eighty degrees for sixteen minutes.');
+assert.equal(c6.referenceText, 'Spoon the batter into cupcake cases. Bake at one hundred eighty degrees for sixteen minutes.');
+assert.equal(c6.title, 'Fill the cups and bake'); // shown, not read
 assert.deepEqual(c6.tokens.find(t => t.text === '180°C').words, ['one', 'hundred', 'eighty', 'degrees']);
-assert.equal(c6.tokens.filter(t => t.head).length, 5);
-assert.equal(card('5').referenceText, 'Mix with flour. Add flour in three to four times. Mix gently.');
-assert.equal(card('3').referenceText, 'Whisk the eggs and sugar. Whisk eggs on high speed for two minutes. Add sugar and mix until creamy.');
+assert.equal(c6.tokens[0].text, 'Spoon');
+assert.equal(card('5').referenceText, 'Add flour in three to four times. Mix gently.');
+assert.equal(card('3').referenceText, 'Whisk eggs on high speed for two minutes. Add sugar and mix until creamy.');
 const c42 = card('4-2');
 assert.equal(c42.referenceText, 'Add the vanilla extract and the honey milk. Mix with a spatula.');
-assert.equal(c42.tokens.filter(t => t.head).length, 0);
+assert.equal(c42.title, 'Add oil and flavor');
 assert.deepEqual(c6.tokens.find(t => t.text === 'minutes.').words, ['minutes']);
 
 // --- live progress ---
 const c1 = card('1');
 assert.equal(C.progress(c1.tokens, ''), 0);
-assert.equal(C.progress(c1.tokens, 'prepare the liquids mix'), 4);
-assert.equal(C.progress(c1.tokens, 'um prepare the'), 2);
-assert.equal(C.progress(c6.tokens, 'fill the cups and bake spoon the batter into cupcake cases bake at 180 degrees'), 14);
-assert.equal(C.progress(c6.tokens, 'Fill the cups and bake. Spoon the batter into cupcake cases. Bake at 180°C'), 14);
+assert.equal(C.progress(c1.tokens, 'mix milk and honey'), 4);
+assert.equal(C.progress(c1.tokens, 'um mix milk'), 2);
+assert.equal(C.progress(c1.tokens, 'prepare the liquids mix'), 1); // title words read anyway are ignored
+assert.equal(C.progress(c6.tokens, 'spoon the batter into cupcake cases bake at 180 degrees'), 9);
+assert.equal(C.progress(c6.tokens, 'Spoon the batter into cupcake cases. Bake at 180°C'), 9);
 
 // --- Azure result alignment ---
 const words = (c, f) => c.tokens.flatMap(t => t.words).map((w, i) => ({ Word: w, PronunciationAssessment: f(w, i) }));
@@ -36,9 +38,9 @@ w1.splice(2, 0, { Word: 'um', PronunciationAssessment: { ErrorType: 'Insertion' 
 const json1 = { NBest: [{ PronunciationAssessment: { AccuracyScore: 81.4, FluencyScore: 90, CompletenessScore: 92, ProsodyScore: 77.6, PronScore: 83.2 }, Words: w1 }] };
 const r1 = C.fromAzure(json1, c1.tokens);
 assert.equal(r1.tokens.length, c1.tokens.length);
-assert.deepEqual(r1.tokens.find(t => t.text === 'honey.'), { text: 'honey.', head: false, score: null, error: 'Omission' });
-assert.deepEqual(r1.tokens.find(t => t.text === 'Mix'), { text: 'Mix', head: false, score: 62, error: 'Mispronunciation' });
-assert.equal(r1.tokens[0].score, 95);
+assert.deepEqual(r1.tokens.find(t => t.text === 'honey.'), { text: 'honey.', score: null, error: 'Omission' });
+assert.deepEqual(r1.tokens.find(t => t.text === 'Mix'), { text: 'Mix', score: 62, error: 'Mispronunciation' });
+assert.equal(r1.tokens[1].score, 95);
 assert.deepEqual(r1.scores, { accuracy: 81, fluency: 90, completeness: 92, prosody: 78, overall: 83 });
 
 const json6 = { NBest: [{ PronunciationAssessment: { PronScore: 70, CompletenessScore: 100 }, Words: words(c6, w => ok(w === 'eighty' ? 40 : 90)) }] };
