@@ -24,6 +24,7 @@
     three: 85, two: 70, one: 50,   // overall (PronScore) needed for 3 / 2 / 1 stars
     minCompleteness: 50,           // below this: 0 stars whatever the overall score
     readCompleteness: 60,          // at or above this the card counts as "read" (teacher's main goal)
+    unclearCompleteness: 25,       // below this the sentence was not really heard: ask again, no score
     weak: 70,                      // words scored below this go to "words to practice"
     maxWeakPerCard: 10, maxWeakSummary: 5,
     maxTries: 3,                   // readings per card; the best one counts
@@ -92,6 +93,7 @@
     const r = v => (typeof v === 'number' ? Math.round(v) : null);
     return {
       tokens: out,
+      heard: typeof best.Display === 'string' ? best.Display : '', // what the recogniser heard (for diagnosis)
       scores: { accuracy: r(pa.AccuracyScore), fluency: r(pa.FluencyScore), completeness: r(pa.CompletenessScore), prosody: r(pa.ProsodyScore), overall: r(pa.PronScore) ?? 0 },
     };
   }
@@ -121,6 +123,12 @@
     return { stars, read: c >= S.readCompleteness, feedback };
   }
 
+  // Speech was heard but (almost) none of the card's words matched: other words, a wrong sound
+  // source, or the start cut off. Ask again instead of crossing out the whole card.
+  // (Azure still force-matches a word or two to unrelated speech, e.g. completeness 8.)
+  const heardNothing = result => !result.tokens.some(t => t.error !== 'Omission')
+    || (result.scores.completeness ?? 0) < SCORING.unclearCompleteness;
+
   const better = (a, b) => (!a || b.result.scores.overall > a.result.scores.overall ? b : a);
 
   function summarize(best) {
@@ -144,7 +152,7 @@
     };
   }
 
-  const api = { CARDS, CARD_IDS, SCORING, spokenWords, prepare, progress, fromAzure, weakWords, rate, better, summarize, toPayload };
+  const api = { CARDS, CARD_IDS, SCORING, spokenWords, prepare, progress, fromAzure, weakWords, rate, heardNothing, better, summarize, toPayload };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.ReadCore = api;
 })(typeof window !== 'undefined' ? window : globalThis);

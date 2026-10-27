@@ -47,6 +47,15 @@ assert.equal(C.fromAzure(json6, c6.tokens).tokens.find(t => t.text === '180°C')
 const short = C.fromAzure({ NBest: [{ PronunciationAssessment: { PronScore: 20 }, Words: words(c1, () => ok(90)).slice(0, 3) }] }, c1.tokens);
 assert.equal(short.tokens[5].error, 'Omission');
 assert.equal(C.fromAzure({}, c1.tokens).scores.overall, 0);
+assert.equal(C.fromAzure({ NBest: [{ Display: 'Mix milk.', Words: [] }] }, c1.tokens).heard, 'Mix milk.');
+assert.equal(r1.heard, '');
+// nothing matched -> heardNothing; one matched word is enough to show the result
+const allOmitted = { NBest: [{ PronunciationAssessment: { PronScore: 0, CompletenessScore: 0 }, Words: words(c1, () => ({ AccuracyScore: 0, ErrorType: 'Omission' })) }] };
+assert.equal(C.heardNothing(C.fromAzure(allOmitted, c1.tokens)), true);
+assert.equal(C.heardNothing(C.fromAzure({}, c1.tokens)), true);
+assert.equal(C.heardNothing(r1), false);
+assert.equal(C.heardNothing({ tokens: r1.tokens, scores: { ...r1.scores, completeness: 8 } }), true);   // unrelated speech
+assert.equal(C.heardNothing({ tokens: r1.tokens, scores: { ...r1.scores, completeness: 40 } }), false); // half read: show it
 
 // --- stars, read flag, feedback ---
 const res = (overall, completeness, toks = []) => ({ tokens: toks, scores: { accuracy: overall, fluency: overall, completeness, prosody: overall, overall } });

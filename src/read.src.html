@@ -62,6 +62,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
 @keyframes pulse{50%{transform:scale(1.4);opacity:.6}}
 .stars{font-size:44px;color:#F2B01E;letter-spacing:4px}
 .feedback{font-size:24px;font-weight:800;color:var(--brown);margin:0;text-align:center}
+.heard{font-size:16px;color:#8a6f6a;margin:2px 0 0;text-align:center} /* ?debug=1 only */
 .actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:4px}
 [data-screen="card"] .btn.big{margin-top:0}
 [data-screen="card"] .step-no{display:none} /* the slide above already shows the step */
@@ -119,6 +120,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
       <div class="stars" id="stars"></div>
       <p class="feedback" id="feedback"></p>
     </div>
+    <p class="heard" id="heard" hidden></p>
     <div class="actions">
       <button class="btn" id="listenBtn">Listen</button>
       <button class="btn go big" id="readBtn">Start reading</button>
@@ -162,6 +164,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
     token: 'Please ask your teacher.\n請老師幫忙：無法連到評分服務，請檢查網路。',
     sdk: 'Please check the internet and reload the page.\n請檢查網路後重新整理。',
     nomatch: "I couldn't hear you. Hold the iPad closer and try again.",
+    unclear: "I heard you, but not the words on the card. Read the sentence on the card and try again.",
     canceled: "Something went wrong. Let's try again.",
   busy: 'Too many groups are reading right now. Wait a moment and try again.',
   };
@@ -232,6 +235,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
           if (i < words.length) return;
           clearInterval(tick);
           resolve({
+            heard: words.join(' '),
             tokens: card.tokens.map((t, k) => ({ text: t.text, head: t.head, score: k === 2 ? 55 : 92, error: k === 2 ? 'Mispronunciation' : 'None' })),
             scores: { accuracy: 88, fluency: 90, completeness: 100, prosody: 85, overall: 87 },
           });
@@ -243,6 +247,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
 
   const fake = new URLSearchParams(location.search).get('engine') === 'fake';
   const engine = fake ? FakeEngine : AzureEngine;
+  const debug = new URLSearchParams(location.search).get('debug') === '1'; // ?debug=1 shows what was heard
 
   // Ask for the microphone once per page load, so a denial gets a clear message.
   let micOk = fake;
@@ -390,7 +395,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
       d.className = k === i ? 'now' : S.best[x.id] ? 'done' : '';
       $('#dots').append(d);
     });
-    $('#stars').textContent = ''; $('#feedback').textContent = ''; status('');
+    $('#stars').textContent = ''; $('#feedback').textContent = ''; $('#heard').hidden = true; status('');
     setButtons('idle');
     show('card');
   }
@@ -411,7 +416,7 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
     S.reading = true;
     try { speechSynthesis.cancel(); } catch { /* no TTS */ }
     Frame.hush();
-    paint(null); $('#stars').textContent = ''; $('#feedback').textContent = '';
+    paint(null); $('#stars').textContent = ''; $('#feedback').textContent = ''; $('#heard').hidden = true;
     setButtons('reading');
     try {
       for (const n of [3, 2, 1]) { status(String(n)); await sleep(fake ? 150 : 700); if (run !== S.run) return; }
@@ -419,6 +424,10 @@ body.reading .slide-box{pointer-events:none;opacity:.75} /* no slide sounds whil
       S.ctrl = new AbortController();
       const result = await engine.assess(c, { onPartial: text => run === S.run && light(C.progress(c.tokens, text)), signal: S.ctrl.signal });
       if (run !== S.run) return;
+      console.info('[read] heard:', result.heard);
+      $('#heard').hidden = !debug;
+      $('#heard').textContent = 'Heard: "' + (result.heard || '') + '"';
+      if (C.heardNothing(result)) throw fail('unclear'); // not counted as a try
       S.tries++;
       const entry = { result, rate: C.rate(result) };
       S.best[c.id] = C.better(S.best[c.id], entry);
